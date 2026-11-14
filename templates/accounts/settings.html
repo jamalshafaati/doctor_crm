@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1>
+<p class="text-secondary mb-0">{% trans "اطلاعات کلینیک از این بخش قابل ویرایش است" %}</p></div>
+<div class="card" style="max-width:640px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+<div class="form-group">
+<label class="form-label">{% trans "نام کلینیک (فارسی)" %}</label>
+<input type="text" name="name_fa" class="form-input" value="{{ clinic.name_fa }}">
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "نام کلینیک (انگلیسی)" %}</label>
+<input type="text" name="name_en" class="form-input" value="{{ clinic.name_en }}">
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "آدرس" %}</label>
+<textarea name="address" class="form-textarea" rows="2">{{ clinic.address }}</textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="form-group">
+<label class="form-label">{% trans "تلفن" %}</label>
+<input type="text" name="phone" class="form-input" value="{{ clinic.phone }}">
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "ایمیل" %}</label>
+<input type="email" name="email" class="form-input" value="{{ clinic.email }}">
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "ساعات کاری" %}</label>
+<input type="text" name="working_hours" class="form-input" value="{{ clinic.working_hours }}">
+</div>
+<button type="submit" class="btn btn-primary">{% trans "ذخیره تنظیمات" %}</button>
+</form>
+</div></div>
+{% endblock %}

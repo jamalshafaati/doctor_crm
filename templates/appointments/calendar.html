@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between" style="flex-wrap:wrap;gap:1rem;">
+    <div><h1>{{ page_title }}</h1>
+    <p class="text-secondary mb-0">{% trans "نمایش شمسی — ذخیره میلادی" %}</p></div>
+    <div class="flex gap-2 items-center">
+        <a href="?day={{ prev_j }}" class="btn btn-ghost btn-sm">←</a>
+        <form method="get" class="flex gap-2 items-center">
+            <input type="text" name="day" class="form-input" value="{{ day_j }}" placeholder="1403/08/23" style="width:130px;">
+            <button type="submit" class="btn btn-secondary btn-sm">{% trans "برو" %}</button>
+        </form>
+        <a href="?day={{ next_j }}" class="btn btn-ghost btn-sm">→</a>
+        <a href="{% url 'appointments:calendar' %}" class="btn btn-primary btn-sm">{% trans "امروز" %}</a>
+        <a href="{% url 'appointments:create' %}" class="btn btn-secondary btn-sm">{% trans "رزرو" %}</a>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h3 class="mb-0">{{ day_j }}</h3>
+        <span class="text-sm text-muted">{{ appointments|length }} {% trans "نوبت" %}</span></div>
+    <div class="card-body" style="padding:0;">
+        {% if appointments %}
+        <table class="data-table">
+            <thead><tr><th>{% trans "ساعت" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "علت" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+            <tbody>
+            {% for a in appointments %}
+            <tr>
+                <td class="font-medium">{{ a.scheduled_at|time:"H:i" }}</td>
+                <td><a href="{% url 'patients:detail' a.patient_id %}">{{ a.patient.full_name }}</a>
+                    <div class="text-xs text-muted">{{ a.patient.patient_number }}</div></td>
+                <td class="text-sm">{{ a.doctor.get_full_name|default:a.doctor.username }}</td>
+                <td class="text-sm text-muted">{{ a.reason|default:"—" }}</td>
+                <td><span class="badge badge-neutral">{{ a.get_status_display }}</span></td>
+                <td>
+                    {% if a.status == 'scheduled' or a.status == 'confirmed' %}
+                    <a href="{% url 'appointments:check_in' a.pk %}" class="btn btn-primary btn-sm">{% trans "چک‌این" %}</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><p class="text-sm mb-0">{% trans "نوبتی در این روز نیست" %}</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

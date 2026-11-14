@@ -1,0 +1,18 @@
+{% extends "public/base_public.html" %}
+{% load i18n %}
+{% block content %}
+<section class="pub-section">
+<div class="pub-container">
+<h1 class="pub-section-title">{% trans "خدمات کلینیک" %}</h1>
+<p class="pub-section-sub">{% trans "طیف کامل مراقبت پا و مچ پا" %}</p>
+<div class="pub-grid-3">
+<div class="pub-card"><h3>{% trans "معاینه تخصصی" %}</h3><p>{% trans "معاینه ساختاریافته تروما، ورزشی، آشیل، صافی کف پا و آرتریت." %}</p></div>
+<div class="pub-card"><h3>{% trans "تصویربرداری" %}</h3><p>{% trans "آرشیو امن رادیوگرافی، MRI و سونوگرافی در پرونده بیمار." %}</p></div>
+<div class="pub-card"><h3>{% trans "طرح درمان" %}</h3><p>{% trans "محافظه‌کارانه تا جراحی با دستورات واضح پیگیری." %}</p></div>
+<div class="pub-card"><h3>{% trans "جراحی" %}</h3><p>{% trans "ثبت عمل، ایمپلنت و دستورات بعد از عمل." %}</p></div>
+<div class="pub-card"><h3>{% trans "توانبخشی" %}</h3><p>{% trans "پیگیری منظم درد، زخم، تحرک و بازگشت عملکرد." %}</p></div>
+<div class="pub-card"><h3>{% trans "پورتال بیمار" %}</h3><p>{% trans "مشاهده نوبت، اسناد منتشرشده و نسخه‌های تأییدشده." %}</p></div>
+</div>
+</div>
+</section>
+{% endblock %}

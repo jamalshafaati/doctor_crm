@@ -1,0 +1,25 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="card"><div class="card-body" style="padding:0;">
+{% if prescriptions %}
+<table class="data-table">
+<thead><tr><th>#</th><th>{% trans "بیمار" %}</th><th>{% trans "وضعیت" %}</th><th>{% trans "اقلام" %}</th><th>{% trans "تاریخ" %}</th></tr></thead>
+<tbody>
+{% for rx in prescriptions %}
+<tr>
+<td>{{ rx.pk }}</td>
+<td><a href="{% url 'patients:detail' rx.patient_id %}">{{ rx.patient.full_name }}</a></td>
+<td><span class="badge badge-neutral">{{ rx.get_status_display }}</span></td>
+<td class="text-sm">{% for item in rx.items.all %}{{ item.medication_name }}{% if not forloop.last %}، {% endif %}{% empty %}—{% endfor %}</td>
+<td class="text-sm">{{ rx.created_at|clinic_date }}</td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% else %}
+<div class="empty-state"><h3>{% trans "نسخه‌ای ثبت نشده" %}</h3></div>
+{% endif %}
+</div></div>
+{% endblock %}

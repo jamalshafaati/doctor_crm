@@ -1,0 +1,13 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ doc.title }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+<a href="{% url 'portal:documents' %}" class="text-sm text-muted">← {% trans "بازگشت" %}</a>
+<h1>{{ doc.title }}</h1>
+<p class="text-secondary mb-0">{{ doc.get_doc_type_display }} · {{ doc.published_at|clinic_date }}</p>
+</div>
+<div class="card"><div class="card-body">
+{{ doc.content|linebreaksbr|default:_("محتوایی ثبت نشده") }}
+</div></div>
+{% endblock %}

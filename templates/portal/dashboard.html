@@ -1,0 +1,52 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+<h1>{% trans "پورتال بیمار" %}</h1>
+<p class="text-secondary mb-0">{% blocktrans with name=patient.full_name %}سلام، {{ name }}{% endblocktrans %}</p>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-6">
+<a href="{% url 'portal:appointments' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+<div class="metric-card-label">{% trans "نوبت‌های آینده" %}</div>
+<div class="metric-card-value">{{ upcoming|length }}</div>
+</a>
+<a href="{% url 'portal:documents' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+<div class="metric-card-label">{% trans "اسناد منتشرشده" %}</div>
+<div class="metric-card-value">{{ docs|length }}</div>
+</a>
+<a href="{% url 'portal:prescriptions' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+<div class="metric-card-label">{% trans "نسخه‌ها" %}</div>
+<div class="metric-card-value">—</div>
+</a>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "نوبت‌های پیش‌رو" %}</h3>
+<a href="{% url 'portal:request_appointment' %}" class="btn btn-primary btn-sm">{% trans "درخواست نوبت" %}</a></div>
+<div class="card-body">
+{% if upcoming %}
+{% for a in upcoming %}
+<div class="mb-3 text-sm" style="border-bottom:1px solid var(--color-border);padding-bottom:0.5rem;">
+<strong>{{ a.scheduled_at|clinic_datetime }}</strong>
+<span class="badge badge-neutral">{{ a.get_status_display }}</span>
+<div class="text-muted">{{ a.doctor.get_full_name|default:a.doctor.username }}</div>
+</div>
+{% endfor %}
+{% else %}<p class="text-muted text-sm mb-0">{% trans "نوبت آینده‌ای ندارید" %}</p>{% endif %}
+</div></div>
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "اسناد اخیر" %}</h3>
+<a href="{% url 'portal:documents' %}" class="btn btn-ghost btn-sm">{% trans "همه" %}</a></div>
+<div class="card-body">
+{% if docs %}
+{% for d in docs %}
+<div class="mb-2 text-sm">
+<a href="{% url 'portal:document_detail' d.pk %}">{{ d.title }}</a>
+<span class="text-xs text-muted">· {{ d.get_doc_type_display }} · {{ d.published_at|clinic_date }}</span>
+</div>
+{% endfor %}
+{% else %}<p class="text-muted text-sm mb-0">{% trans "سندی منتشر نشده" %}</p>{% endif %}
+</div></div>
+</div>
+{% endblock %}

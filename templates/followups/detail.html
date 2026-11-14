@@ -1,0 +1,34 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{% trans "پیگیری" %}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+<div>
+<h1>{% trans "پیگیری" %} — {{ followup.patient.full_name }}</h1>
+<p class="text-secondary mb-0">{{ followup.scheduled_date|clinic_date }} · <span class="badge badge-neutral">{{ followup.get_status_display }}</span></p>
+</div>
+<a href="{% url 'followups:edit' followup.pk %}" class="btn btn-secondary btn-sm">{% trans "ویرایش" %}</a>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="card"><div class="card-header"><h3 class="mb-0">{% trans "ارزیابی" %}</h3></div>
+<div class="card-body text-sm">
+<p><span class="text-muted">{% trans "درد" %}:</span> {{ followup.pain_score|default:"—" }}/10</p>
+<p><span class="text-muted">{% trans "زخم" %}:</span> {{ followup.wound_status|default:"—" }}</p>
+<p><span class="text-muted">{% trans "تحرک" %}:</span> {{ followup.mobility|default:"—" }}</p>
+<p><span class="text-muted">{% trans "تحمل وزن" %}:</span> {{ followup.weight_bearing_status|default:"—" }}</p>
+<p class="mb-0"><span class="text-muted">{% trans "طرف" %}:</span> {{ followup.get_side_display }}</p>
+</div></div>
+<div class="card"><div class="card-header"><h3 class="mb-0">{% trans "جزئیات" %}</h3></div>
+<div class="card-body text-sm">
+<p><span class="text-muted">{% trans "پزشک" %}:</span> {{ followup.doctor.get_full_name|default:followup.doctor.username }}</p>
+{% if followup.surgery %}<p><span class="text-muted">{% trans "جراحی" %}:</span> <a href="{% url 'surgery:detail' followup.surgery_id %}">{{ followup.surgery.procedure }}</a></p>{% endif %}
+{% if followup.next_followup_date %}<p><span class="text-muted">{% trans "پیگیری بعدی" %}:</span> {{ followup.next_followup_date|clinic_date }}</p>{% endif %}
+{% if followup.rehabilitation_progress %}<p><span class="text-muted">{% trans "توانبخشی" %}:</span> {{ followup.rehabilitation_progress }}</p>{% endif %}
+{% if followup.complications %}<p class="mb-0"><span class="text-muted">{% trans "عوارض" %}:</span> {{ followup.complications }}</p>{% endif %}
+</div></div>
+</div>
+{% if followup.assessment_notes %}
+<div class="card mt-6"><div class="card-header"><h3 class="mb-0">{% trans "یادداشت" %}</h3></div>
+<div class="card-body text-sm">{{ followup.assessment_notes|linebreaksbr }}</div></div>
+{% endif %}
+{% endblock %}

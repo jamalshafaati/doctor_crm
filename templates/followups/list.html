@@ -1,0 +1,37 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+<div><h1>{{ page_title }}</h1></div>
+<a href="{% url 'followups:create' %}" class="btn btn-primary"><i data-lucide="plus" style="width:16px;height:16px;"></i> {% trans "ثبت پیگیری" %}</a>
+</div>
+<div class="card mb-4"><div class="card-body">
+<form method="get"><select name="status" class="form-select" style="width:auto;" onchange="this.form.submit()">
+<option value="">{% trans "همه" %}</option>
+{% for v,l in statuses %}<option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+</select></form>
+</div></div>
+<div class="card"><div class="card-body" style="padding:0;">
+{% if followups %}
+<table class="data-table">
+<thead><tr><th>{% trans "تاریخ" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "جراحی مرتبط" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+<tbody>
+{% for f in followups %}
+<tr>
+<td>{{ f.scheduled_date|clinic_date }}</td>
+<td><a href="{% url 'patients:detail' f.patient_id %}">{{ f.patient.full_name }}</a></td>
+<td class="text-sm">{{ f.doctor.get_full_name|default:f.doctor.username }}</td>
+<td class="text-sm">{% if f.surgery %}{{ f.surgery.procedure }}{% else %}—{% endif %}</td>
+<td><span class="badge badge-neutral">{{ f.get_status_display }}</span></td>
+<td><a href="{% url 'followups:detail' f.pk %}" class="btn btn-ghost btn-sm">{% trans "جزئیات" %}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty-state"><h3>{% trans "پیگیری ثبت نشده" %}</h3>
+<a href="{% url 'followups:create' %}" class="btn btn-primary btn-sm mt-4">{% trans "ثبت پیگیری" %}</a></div>
+{% endif %}
+</div></div>
+{% endblock %}

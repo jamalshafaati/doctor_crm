@@ -1,0 +1,151 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h1>{{ page_title }}</h1>
+        <p class="text-secondary mb-0">{% trans "خلاصه فعالیت کلینیک — داده‌های واقعی" %}</p>
+    </div>
+    <div class="flex gap-2" style="flex-wrap:wrap;">
+        <a href="{% url 'patients:create' %}" class="btn btn-secondary btn-sm"><i data-lucide="user-plus" style="width:14px;height:14px;"></i> {% trans "بیمار جدید" %}</a>
+        <a href="{% url 'appointments:create' %}" class="btn btn-secondary btn-sm"><i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> {% trans "نوبت" %}</a>
+        <a href="{% url 'encounters:create' %}" class="btn btn-primary btn-sm"><i data-lucide="stethoscope" style="width:14px;height:14px;"></i> {% trans "ویزیت جدید" %}</a>
+        <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm"><i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i> {% trans "گزارش‌ها" %}</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <a href="{% url 'patients:list' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+        <div class="metric-card-label">{% trans "بیماران فعال" %}</div>
+        <div class="metric-card-value">{{ metrics.patients_total }}</div>
+        <div class="metric-card-change text-muted">{% trans "جدید هفته" %}: {{ metrics.new_patients_week }}</div>
+    </a>
+    <a href="{% url 'appointments:list' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+        <div class="metric-card-label">{% trans "نوبت امروز" %}</div>
+        <div class="metric-card-value">{{ metrics.appointments_today }}</div>
+    </a>
+    <a href="{% url 'encounters:list' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+        <div class="metric-card-label">{% trans "ویزیت‌های باز" %}</div>
+        <div class="metric-card-value">{{ metrics.open_encounters }}</div>
+    </a>
+    <a href="{% url 'followups:list' %}" class="metric-card" style="text-decoration:none;color:inherit;">
+        <div class="metric-card-label">{% trans "پیگیری امروز" %}</div>
+        <div class="metric-card-value">{{ metrics.followups_today }}</div>
+        <div class="metric-card-change text-muted">{% trans "جراحی برنامه‌ریزی" %}: {{ metrics.surgeries_planned }}</div>
+    </a>
+</div>
+
+<div class="grid grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">{% trans "نوبت‌های امروز" %}</h3>
+            <a href="{% url 'appointments:list' %}" class="btn btn-ghost btn-sm">{% trans "همه" %}</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if appts_today %}
+            <table class="data-table">
+                <thead><tr><th>{% trans "ساعت" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                <tbody>
+                {% for a in appts_today %}
+                <tr>
+                    <td class="text-sm font-medium">{{ a.scheduled_at|time:"H:i" }}</td>
+                    <td><a href="{% url 'patients:detail' a.patient_id %}">{{ a.patient.full_name }}</a></td>
+                    <td><span class="badge badge-neutral">{{ a.get_status_display }}</span></td>
+                    <td>
+                        {% if a.status == 'scheduled' or a.status == 'confirmed' %}
+                        <a href="{% url 'appointments:check_in' a.pk %}" class="btn btn-primary btn-sm">{% trans "چک‌این" %}</a>
+                        {% elif a.status == 'checked_in' %}
+                        <a href="{% url 'encounters:create' %}?patient={{ a.patient_id }}&appointment={{ a.pk }}" class="btn btn-secondary btn-sm">{% trans "ویزیت" %}</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "نوبتی برای امروز نیست" %}</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">{% trans "ویزیت‌های باز" %}</h3>
+            <a href="{% url 'encounters:list' %}" class="btn btn-ghost btn-sm">{% trans "همه" %}</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if open_encounters %}
+            <table class="data-table">
+                <thead><tr><th>#</th><th>{% trans "بیمار" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                <tbody>
+                {% for e in open_encounters %}
+                <tr>
+                    <td>{{ e.pk }}</td>
+                    <td>{{ e.patient.full_name }}</td>
+                    <td><span class="badge badge-info">{{ e.get_status_display }}</span></td>
+                    <td><a href="{% url 'encounters:workspace' e.pk %}" class="btn btn-primary btn-sm">{% trans "ادامه" %}</a></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "ویزیت بازی نیست" %}</p></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-6">
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0">{% trans "پیگیری امروز" %}</h3>
+            <a href="{% url 'followups:create' %}" class="btn btn-ghost btn-sm">+</a></div>
+        <div class="card-body" style="padding:0;">
+            {% if followups_today %}
+            <table class="data-table"><tbody>
+            {% for f in followups_today %}
+            <tr>
+                <td><a href="{% url 'followups:detail' f.pk %}">{{ f.patient.full_name }}</a></td>
+                <td><span class="badge badge-neutral">{{ f.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody></table>
+            {% else %}<div class="empty-state" style="padding:1rem;"><p class="text-sm mb-0">{% trans "موردی نیست" %}</p></div>{% endif %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0">{% trans "جراحی‌های پیش‌رو" %}</h3>
+            <a href="{% url 'surgery:list' %}" class="btn btn-ghost btn-sm">{% trans "همه" %}</a></div>
+        <div class="card-body" style="padding:0;">
+            {% if surgeries_upcoming %}
+            <table class="data-table"><tbody>
+            {% for s in surgeries_upcoming %}
+            <tr>
+                <td class="text-sm">{{ s.surgery_date|clinic_date }}</td>
+                <td><a href="{% url 'surgery:detail' s.pk %}">{{ s.procedure }}</a>
+                    <div class="text-xs text-muted">{{ s.patient.full_name }}</div></td>
+            </tr>
+            {% endfor %}
+            </tbody></table>
+            {% else %}<div class="empty-state" style="padding:1rem;"><p class="text-sm mb-0">{% trans "موردی نیست" %}</p></div>{% endif %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0">{% trans "بیماران اخیر" %}</h3>
+            <a href="{% url 'patients:list' %}" class="btn btn-ghost btn-sm">{% trans "همه" %}</a></div>
+        <div class="card-body" style="padding:0;">
+            {% if recent_patients %}
+            <table class="data-table"><tbody>
+            {% for p in recent_patients %}
+            <tr>
+                <td><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a>
+                    <div class="text-xs text-muted">{{ p.patient_number }}</div></td>
+                <td class="text-sm text-muted">{{ p.registered_at|clinic_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody></table>
+            {% else %}<div class="empty-state" style="padding:1rem;"><p class="text-sm mb-0">—</p></div>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

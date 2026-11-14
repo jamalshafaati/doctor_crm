@@ -1,0 +1,111 @@
+{% load i18n %}
+<aside class="sidebar" :class="{ 'open': sidebarOpen }">
+    <div class="sidebar-brand">
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+            <div style="width:32px;height:32px;background:var(--color-primary-teal);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="footprints" style="width:18px;height:18px;color:white;"></i>
+            </div>
+            <span style="font-size:0.95rem;">{% trans "کلینیک پا و مچ پا" %}</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        {% if user.is_authenticated %}
+
+            {% if user.is_doctor or user.role == 'admin' %}
+            <div class="nav-section">
+                <div class="nav-section-title">{% trans "اصلی" %}</div>
+                <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i><span>{% trans "داشبورد" %}</span>
+                </a>
+                <a href="{% url 'patients:list' %}" class="nav-item {% if request.resolver_match.app_name == 'patients' %}active{% endif %}">
+                    <i data-lucide="users"></i><span>{% trans "بیماران" %}</span>
+                </a>
+                <a href="{% url 'appointments:list' %}" class="nav-item {% if request.resolver_match.app_name == 'appointments' and request.resolver_match.url_name == 'list' %}active{% endif %}">
+                    <i data-lucide="calendar"></i><span>{% trans "نوبت‌دهی" %}</span>
+                </a>
+                <a href="{% url 'appointments:calendar' %}" class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+                    <i data-lucide="calendar-days"></i><span>{% trans "تقویم نوبت" %}</span>
+                </a>
+                <a href="{% url 'encounters:list' %}" class="nav-item {% if request.resolver_match.app_name == 'encounters' %}active{% endif %}">
+                    <i data-lucide="stethoscope"></i><span>{% trans "ویزیت‌ها" %}</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">{% trans "بالینی" %}</div>
+                <a href="{% url 'medical_history:list' %}" class="nav-item {% if request.resolver_match.app_name == 'medical_history' %}active{% endif %}">
+                    <i data-lucide="book-open"></i><span>{% trans "سوابق پزشکی" %}</span>
+                </a>
+                <a href="{% url 'diagnoses:list' %}" class="nav-item {% if request.resolver_match.app_name == 'diagnoses' %}active{% endif %}">
+                    <i data-lucide="clipboard-list"></i><span>{% trans "تشخیص‌ها" %}</span>
+                </a>
+                <a href="{% url 'imaging:list' %}" class="nav-item {% if request.resolver_match.app_name == 'imaging' %}active{% endif %}">
+                    <i data-lucide="image"></i><span>{% trans "تصویربرداری" %}</span>
+                </a>
+                <a href="{% url 'treatment:list' %}" class="nav-item {% if request.resolver_match.app_name == 'treatment' %}active{% endif %}">
+                    <i data-lucide="file-text"></i><span>{% trans "طرح درمان" %}</span>
+                </a>
+                <a href="{% url 'prescriptions:list' %}" class="nav-item {% if request.resolver_match.app_name == 'prescriptions' %}active{% endif %}">
+                    <i data-lucide="pill"></i><span>{% trans "نسخه‌ها" %}</span>
+                </a>
+                <a href="{% url 'surgery:list' %}" class="nav-item {% if request.resolver_match.app_name == 'surgery' %}active{% endif %}">
+                    <i data-lucide="scissors"></i><span>{% trans "جراحی" %}</span>
+                </a>
+                <a href="{% url 'followups:list' %}" class="nav-item {% if request.resolver_match.app_name == 'followups' %}active{% endif %}">
+                    <i data-lucide="activity"></i><span>{% trans "پیگیری‌ها" %}</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">{% trans "گزارش و تنظیمات" %}</div>
+                <a href="{% url 'reports:dashboard' %}" class="nav-item {% if request.resolver_match.app_name == 'reports' %}active{% endif %}">
+                    <i data-lucide="bar-chart-2"></i><span>{% trans "آمار و گزارش" %}</span>
+                </a>
+                <a href="{% url 'notifications:list' %}" class="nav-item {% if request.resolver_match.app_name == 'notifications' %}active{% endif %}">
+                    <i data-lucide="bell"></i><span>{% trans "اعلان‌ها" %}</span>
+                </a>
+                <a href="{% url 'accounts:settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <i data-lucide="settings"></i><span>{% trans "تنظیمات کلینیک" %}</span>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if user.is_receptionist %}
+            <div class="nav-section">
+                <div class="nav-section-title">{% trans "پذیرش" %}</div>
+                <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i><span>{% trans "داشبورد" %}</span>
+                </a>
+                <a href="{% url 'patients:create' %}" class="nav-item">
+                    <i data-lucide="user-plus"></i><span>{% trans "ثبت بیمار" %}</span>
+                </a>
+                <a href="{% url 'patients:list' %}" class="nav-item">
+                    <i data-lucide="users"></i><span>{% trans "لیست بیماران" %}</span>
+                </a>
+                <a href="{% url 'appointments:list' %}" class="nav-item">
+                    <i data-lucide="calendar"></i><span>{% trans "نوبت‌دهی" %}</span>
+                </a>
+                <a href="{% url 'appointments:list' %}" class="nav-item">
+                    <i data-lucide="check-square"></i><span>{% trans "چک‌این" %}</span>
+                </a>
+                <a href="{% url 'notifications:list' %}" class="nav-item">
+                    <i data-lucide="bell"></i><span>{% trans "اعلان‌ها" %}</span>
+                </a>
+            </div>
+            {% endif %}
+
+            {% if user.is_patient or user.role == 'patient' %}
+            <div class="nav-section">
+                <div class="nav-section-title">{% trans "پورتال" %}</div>
+                <a href="{% url 'portal:dashboard' %}" class="nav-item"><i data-lucide="home"></i><span>{% trans "خانه" %}</span></a>
+                <a href="{% url 'portal:appointments' %}" class="nav-item"><i data-lucide="calendar"></i><span>{% trans "نوبت‌ها" %}</span></a>
+                <a href="{% url 'portal:documents' %}" class="nav-item"><i data-lucide="file-text"></i><span>{% trans "اسناد" %}</span></a>
+                <a href="{% url 'portal:prescriptions' %}" class="nav-item"><i data-lucide="pill"></i><span>{% trans "نسخه‌ها" %}</span></a>
+            </div>
+            {% endif %}
+
+        {% endif %}
+    </nav>
+    <div style="padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.75rem; color: rgba(255,255,255,0.4);">
+        v0.7.1
+    </div>
+</aside>

@@ -1,0 +1,22 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="card"><div class="card-body">
+{% if prescriptions %}
+{% for rx in prescriptions %}
+<div class="mb-4" style="border-bottom:1px solid var(--color-border);padding-bottom:1rem;">
+<div class="text-sm text-muted mb-2">{{ rx.created_at|clinic_date }} · {{ rx.get_status_display }}</div>
+<ul style="padding-inline-start:1.2rem;margin:0;">
+{% for item in rx.items.all %}
+<li class="text-sm">{{ item.medication_name }}{% if item.dosage %} — {{ item.dosage }}{% endif %}{% if item.frequency %} · {{ item.frequency }}{% endif %}{% if item.duration %} · {{ item.duration }}{% endif %}</li>
+{% endfor %}
+</ul>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state"><p class="text-sm mb-0">{% trans "نسخه تأییدشده‌ای وجود ندارد" %}</p></div>
+{% endif %}
+</div></div>
+{% endblock %}

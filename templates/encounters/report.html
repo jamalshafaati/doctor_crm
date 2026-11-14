@@ -1,0 +1,99 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{% trans "گزارش ویزیت" %} #{{ encounter.pk }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex items-center justify-between" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div class="text-sm text-muted">{{ patient.patient_number }} · {% trans "گزارش ویزیت" %} #{{ encounter.pk }}</div>
+        <h1>{{ patient.full_name }}</h1>
+        <p class="text-secondary mb-0">{{ encounter.started_at|clinic_datetime }} · {{ encounter.doctor.get_full_name|default:encounter.doctor.username }} · {{ encounter.get_status_display }}</p>
+    </div>
+    <div class="flex gap-2">
+        {% if not encounter.is_locked %}
+        <a href="{% url 'encounters:workspace' encounter.pk %}" class="btn btn-primary btn-sm">{% trans "ویرایش در فضای کاری" %}</a>
+        {% endif %}
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">{% trans "چاپ" %}</button>
+        <a href="{% url 'patients:detail' patient.pk %}?tab=encounters" class="btn btn-ghost btn-sm">{% trans "پرونده" %}</a>
+    </div>
+</div>
+
+{% if alerts or allergies %}
+<div class="card mb-4" style="border-inline-start:4px solid var(--color-danger);">
+<div class="card-body text-sm">
+{% for a in alerts %}<div><strong>⚠ {{ a.title }}</strong> {{ a.description }}</div>{% endfor %}
+{% if allergies %}<div class="mt-2">{% trans "آلرژی" %}: {% for al in allergies %}<span class="badge badge-warning">{{ al.allergen }}</span> {% endfor %}</div>{% endif %}
+</div></div>
+{% endif %}
+
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "شکایت و یادداشت" %}</h3></div>
+<div class="card-body text-sm">
+<p><strong>{% trans "شکایت اصلی" %}:</strong> {{ encounter.chief_complaint|default:"—"|linebreaksbr }}</p>
+<p class="mb-0"><strong>{% trans "یادداشت" %}:</strong> {{ encounter.notes|default:"—"|linebreaksbr }}</p>
+</div></div>
+
+{% if clinical_exams %}
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "معاینه عمومی" %}</h3></div>
+<div class="card-body text-sm">
+{% for ex in clinical_exams %}
+<p>{% trans "درد" %}: {{ ex.pain_severity|default:"—" }}/10 · {{ ex.pain_location }} · {{ ex.get_side_display }}</p>
+<p>{% trans "مکانیسم" %}: {{ ex.mechanism_of_injury|default:"—" }}</p>
+<p>{% trans "مشاهده" %}: {{ ex.inspection|default:"—" }}</p>
+<p>{% trans "لمس" %}: {{ ex.palpation|default:"—" }}</p>
+<p>{% trans "ROM" %}: {{ ex.range_of_motion|default:"—" }}</p>
+<p>{% trans "ثبات" %}: {{ ex.stability|default:"—" }}</p>
+<p class="mb-0">{% trans "عصبی-عروقی" %}: {{ ex.neurovascular|default:"—" }}</p>
+{% endfor %}
+</div></div>
+{% endif %}
+
+{% if trauma_exams or achilles_exams or sports_exams or flatfoot_exams or deformity_exams or arthritis_exams %}
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "معاینات تخصصی" %}</h3></div>
+<div class="card-body text-sm">
+{% for t in trauma_exams %}<p><strong>{% trans "تروما" %}</strong>: {{ t.get_side_display }} · {{ t.location }} · {{ t.mechanism }} {% if t.weber_class %}· Weber {{ t.weber_class }}{% endif %}</p>{% endfor %}
+{% for a in achilles_exams %}<p><strong>{% trans "آشیل" %}</strong>: {{ a.get_condition_type_display }} · Thompson: {{ a.thompson_test|default:"—" }}</p>{% endfor %}
+{% for s in sports_exams %}<p><strong>{% trans "ورزشی" %}</strong>: {{ s.sport_type }} · ATFL {{ s.atfl|default:"—" }} · Drawer {{ s.anterior_drawer|default:"—" }}</p>{% endfor %}
+{% for f in flatfoot_exams %}<p><strong>{% trans "صافی کف پا" %}</strong>: {{ f.get_flexibility_display }} · Meary {{ f.mearys_angle|default:"—" }}</p>{% endfor %}
+{% for d in deformity_exams %}<p><strong>{% trans "دفورمیتی" %}</strong>: {{ d.get_deformity_type_display }} · {{ d.get_side_display }}</p>{% endfor %}
+{% for a in arthritis_exams %}<p><strong>{% trans "آرتریت" %}</strong>: {{ a.joint }} · درد {{ a.pain|default:"—" }}/10 · Takakura {{ a.takakura_stage|default:"—" }}</p>{% endfor %}
+</div></div>
+{% endif %}
+
+{% if diagnoses %}
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "تشخیص‌ها" %}</h3></div>
+<div class="card-body text-sm">
+{% for d in diagnoses %}
+<div class="mb-2"><span class="badge badge-teal">{{ d.get_priority_display }}</span> <strong>{{ d.title }}</strong> {% if d.code %}<code>{{ d.code }}</code>{% endif %} · {{ d.get_side_display }}
+{% if d.clinical_notes %}<div class="text-muted">{{ d.clinical_notes }}</div>{% endif %}</div>
+{% endfor %}
+</div></div>
+{% endif %}
+
+{% if treatments %}
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "طرح درمان" %}</h3></div>
+<div class="card-body text-sm">
+{% for t in treatments %}
+<p>{{ t.get_status_display }}</p>
+{% if t.conservative %}<p>{% trans "محافظه‌کارانه" %}: {{ t.conservative }}</p>{% endif %}
+{% if t.physiotherapy %}<p>{% trans "فیزیوتراپی" %}: {{ t.physiotherapy }}</p>{% endif %}
+{% if t.weight_bearing %}<p>{% trans "تحمل وزن" %}: {{ t.weight_bearing }}</p>{% endif %}
+{% if t.followup_instructions %}<p class="mb-0">{% trans "پیگیری" %}: {{ t.followup_instructions }}</p>{% endif %}
+{% endfor %}
+</div></div>
+{% endif %}
+
+{% if prescriptions %}
+<div class="card mb-4"><div class="card-header"><h3 class="mb-0">{% trans "نسخه" %}</h3></div>
+<div class="card-body text-sm">
+{% for rx in prescriptions %}
+<p>{{ rx.get_status_display }}</p>
+<ul style="padding-inline-start:1.2rem;">
+{% for item in rx.items.all %}
+<li>{{ item.medication_name }}{% if item.dosage %} — {{ item.dosage }}{% endif %}{% if item.frequency %} · {{ item.frequency }}{% endif %}{% if item.duration %} · {{ item.duration }}{% endif %}</li>
+{% endfor %}
+</ul>
+{% endfor %}
+</div></div>
+{% endif %}
+
+<style>@media print { .sidebar, .topbar, .btn { display:none !important; } .main-content { margin:0 !important; } }</style>
+{% endblock %}

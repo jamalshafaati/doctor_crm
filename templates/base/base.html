@@ -1,0 +1,49 @@
+{% load i18n static clinic_tags %}
+{% get_current_language as CURRENT_LANG %}
+<!DOCTYPE html>
+<html lang="{{ CURRENT_LANG }}" dir="{% if CURRENT_LANG == 'fa' %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "کلینیک پا و مچ پا" %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if CURRENT_LANG == 'fa' %}lang-fa{% else %}lang-en{% endif %}">
+    {% block body %}
+    <div class="app-shell" x-data="{ sidebarOpen: false }">
+        {% include "components/sidebar.html" %}
+        <div class="main-content">
+            {% include "components/topbar.html" %}
+            <main class="page-content">
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="card" style="padding:0.75rem 1rem;margin-bottom:0.5rem;border-inline-start:4px solid
+                        {% if message.tags == 'error' %}var(--color-danger)
+                        {% elif message.tags == 'success' %}var(--color-success)
+                        {% elif message.tags == 'warning' %}var(--color-warning)
+                        {% else %}var(--color-info){% endif %};">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+    <script>
+        lucide.createIcons();
+        document.body.addEventListener('htmx:afterSwap', function() { lucide.createIcons(); });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

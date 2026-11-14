@@ -1,0 +1,39 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div><h1>{{ page_title }}</h1><p class="text-secondary mb-0">{% trans "رکوردهای جراحی" %}</p></div>
+    <a href="{% url 'surgery:create' %}" class="btn btn-primary"><i data-lucide="plus" style="width:16px;height:16px;"></i> {% trans "ثبت جراحی" %}</a>
+</div>
+<div class="card mb-4"><div class="card-body">
+<form method="get" class="flex gap-3">
+<select name="status" class="form-select" style="width:auto;" onchange="this.form.submit()">
+<option value="">{% trans "همه" %}</option>
+{% for v,l in statuses %}<option value="{{ v }}" {% if status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+</select>
+</form>
+</div></div>
+<div class="card"><div class="card-body" style="padding:0;">
+{% if surgeries %}
+<table class="data-table">
+<thead><tr><th>{% trans "تاریخ" %}</th><th>{% trans "عمل" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "جراح" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+<tbody>
+{% for s in surgeries %}
+<tr>
+<td class="text-sm">{{ s.surgery_date|clinic_date }}</td>
+<td class="font-medium">{{ s.procedure }}</td>
+<td><a href="{% url 'patients:detail' s.patient_id %}">{{ s.patient.full_name }}</a></td>
+<td class="text-sm">{{ s.surgeon.get_full_name|default:s.surgeon.username }}</td>
+<td><span class="badge badge-neutral">{{ s.get_status_display }}</span></td>
+<td><a href="{% url 'surgery:detail' s.pk %}" class="btn btn-ghost btn-sm">{% trans "جزئیات" %}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty-state"><h3>{% trans "جراحی ثبت نشده" %}</h3>
+<a href="{% url 'surgery:create' %}" class="btn btn-primary btn-sm mt-4">{% trans "ثبت جراحی" %}</a></div>
+{% endif %}
+</div></div>
+{% endblock %}

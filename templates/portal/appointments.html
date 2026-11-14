@@ -1,0 +1,43 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+<h1>{{ page_title }}</h1>
+<a href="{% url 'portal:request_appointment' %}" class="btn btn-primary btn-sm">{% trans "درخواست نوبت جدید" %}</a>
+</div>
+<div class="card mb-6"><div class="card-header"><h3 class="mb-0">{% trans "نوبت‌های ثبت‌شده" %}</h3></div>
+<div class="card-body" style="padding:0;">
+{% if appointments %}
+<table class="data-table">
+<thead><tr><th>{% trans "زمان" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "وضعیت" %}</th></tr></thead>
+<tbody>
+{% for a in appointments %}
+<tr>
+<td>{{ a.scheduled_at|clinic_datetime }}</td>
+<td>{{ a.doctor.get_full_name|default:a.doctor.username }}</td>
+<td><span class="badge badge-neutral">{{ a.get_status_display }}</span></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}<div class="empty-state"><p class="text-sm mb-0">{% trans "نوبتی ثبت نشده" %}</p></div>{% endif %}
+</div></div>
+{% if requests %}
+<div class="card"><div class="card-header"><h3 class="mb-0">{% trans "درخواست‌های شما" %}</h3></div>
+<div class="card-body" style="padding:0;">
+<table class="data-table">
+<thead><tr><th>{% trans "تاریخ ترجیحی" %}</th><th>{% trans "علت" %}</th><th>{% trans "وضعیت" %}</th></tr></thead>
+<tbody>
+{% for r in requests %}
+<tr>
+<td>{{ r.preferred_date|clinic_date }}{% if r.preferred_time %} {{ r.preferred_time }}{% endif %}</td>
+<td class="text-sm">{{ r.reason|truncatewords:10|default:"—" }}</td>
+<td><span class="badge badge-neutral">{{ r.get_status_display }}</span></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div></div>
+{% endif %}
+{% endblock %}

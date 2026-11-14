@@ -1,0 +1,31 @@
+{% extends "public/base_public.html" %}
+{% load i18n %}
+{% block content %}
+<section class="pub-section">
+<div class="pub-container">
+    <h1 class="pub-section-title" style="text-align:center;">{% trans "رزرو نوبت آنلاین" %}</h1>
+    <p class="pub-section-sub" style="text-align:center;">{% trans "درخواست شما بررسی و برای هماهنگی تماس گرفته می‌شود." %}</p>
+    <div class="pub-form-card">
+        <form method="post">{% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">{% trans "نام و نام خانوادگی" %} *</label>
+                <input type="text" name="name" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">{% trans "شماره تماس" %} *</label>
+                <input type="tel" name="phone" class="form-input" required placeholder="09xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label class="form-label">{% trans "تاریخ ترجیحی (شمسی)" %}</label>
+                <input type="text" name="preferred_date" class="form-input" placeholder="1403/08/25">
+            </div>
+            <div class="form-group">
+                <label class="form-label">{% trans "علت مراجعه" %}</label>
+                <textarea name="reason" class="form-textarea" rows="3" placeholder="{% trans 'مثلاً درد مچ پا پس از پیچ‌خوردگی' %}"></textarea>
+            </div>
+            <button type="submit" class="pub-btn pub-btn-primary" style="background:var(--color-primary-teal);color:#fff;width:100%;justify-content:center;">{% trans "ارسال درخواست" %}</button>
+        </form>
+    </div>
+</div>
+</section>
+{% endblock %}

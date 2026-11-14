@@ -1,0 +1,42 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="grid grid-cols-2 gap-6">
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "سوابق ثبت‌شده" %}</h3></div>
+<div class="card-body" style="padding:0;">
+{% if histories %}
+<table class="data-table">
+<thead><tr><th>{% trans "بیمار" %}</th><th>{% trans "به‌روزرسانی" %}</th><th></th></tr></thead>
+<tbody>
+{% for h in histories %}
+<tr>
+<td>{{ h.patient.full_name }}<div class="text-xs text-muted">{{ h.patient.patient_number }}</div></td>
+<td class="text-sm">{{ h.updated_at|clinic_date }}</td>
+<td><a href="{% url 'patients:detail' h.patient_id %}?tab=history" class="btn btn-ghost btn-sm">{% trans "مشاهده" %}</a></td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% else %}<div class="empty-state"><p class="text-sm">{% trans "سابقه‌ای نیست" %}</p></div>{% endif %}
+</div></div>
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "آلرژی‌های فعال" %}</h3></div>
+<div class="card-body" style="padding:0;">
+{% if allergies %}
+<table class="data-table">
+<thead><tr><th>{% trans "بیمار" %}</th><th>{% trans "آلرژن" %}</th><th>{% trans "شدت" %}</th></tr></thead>
+<tbody>
+{% for a in allergies %}
+<tr>
+<td><a href="{% url 'patients:detail' a.patient_id %}">{{ a.patient.full_name }}</a></td>
+<td>{{ a.allergen }}</td>
+<td><span class="badge badge-{% if a.severity == 'severe' %}danger{% else %}warning{% endif %}">{{ a.get_severity_display }}</span></td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% else %}<div class="empty-state"><p class="text-sm">—</p></div>{% endif %}
+</div></div>
+</div>
+{% endblock %}

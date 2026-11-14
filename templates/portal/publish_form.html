@@ -1,0 +1,27 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1>
+<p class="text-secondary">{{ patient.full_name }} ({{ patient.patient_number }})</p></div>
+<div class="card" style="max-width:560px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+<div class="form-group">
+<label class="form-label">{% trans "عنوان" %} *</label>
+<input type="text" name="title" class="form-input" required>
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "نوع سند" %}</label>
+<select name="doc_type" class="form-select">
+{% for v,l in doc_types %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">{% trans "محتوا" %}</label>
+<textarea name="content" class="form-textarea" rows="8"></textarea>
+</div>
+<button type="submit" class="btn btn-primary">{% trans "انتشار برای بیمار" %}</button>
+<a href="{% url 'patients:detail' patient.pk %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+</form>
+</div></div>
+{% endblock %}

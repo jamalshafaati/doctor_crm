@@ -1,0 +1,68 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }} | {% trans "کلینیک پا و مچ پا" %}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1>{{ page_title }}</h1>
+        <p class="text-secondary mb-0">{% trans "ویزیت‌های بالینی" %}</p>
+    </div>
+    <a href="{% url 'encounters:create' %}" class="btn btn-primary">
+        <i data-lucide="stethoscope" style="width:16px;height:16px;"></i>
+        {% trans "ویزیت جدید" %}
+    </a>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="flex gap-3">
+            <select name="status" class="form-select" style="width:auto;" onchange="this.form.submit()">
+                <option value="">{% trans "باز / در جریان" %}</option>
+                {% for val, label in statuses %}
+                <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body" style="padding:0;">
+        {% if encounters %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% trans "بیمار" %}</th>
+                    <th>{% trans "پزشک" %}</th>
+                    <th>{% trans "شروع" %}</th>
+                    <th>{% trans "وضعیت" %}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in encounters %}
+                <tr>
+                    <td>{{ e.pk }}</td>
+                    <td>
+                        <a href="{% url 'patients:detail' e.patient_id %}">{{ e.patient.full_name }}</a>
+                        <div class="text-xs text-muted">{{ e.patient.patient_number }}</div>
+                    </td>
+                    <td class="text-sm">{{ e.doctor.get_full_name|default:e.doctor.username }}</td>
+                    <td class="text-sm">{{ e.started_at|clinic_datetime }}</td>
+                    <td><span class="badge badge-neutral">{{ e.get_status_display }}</span></td>
+                    <td>
+                        <a href="{% url 'encounters:workspace' e.pk %}" class="btn btn-primary btn-sm">{% trans "فضای کاری" %}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i data-lucide="clipboard-list" style="width:40px;height:40px;opacity:0.35;"></i>
+            <h3>{% trans "ویزیتی یافت نشد" %}</h3>
+            <a href="{% url 'encounters:create' %}" class="btn btn-primary btn-sm mt-4">{% trans "شروع ویزیت" %}</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

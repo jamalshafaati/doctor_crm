@@ -1,0 +1,64 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ page_title }}{% endblock %} | {{ clinic.name_fa|default:"کلینیک پا و مچ پا" }}</title>
+<meta name="description" content="{% block meta_description %}کلینیک تخصصی پا و مچ پا — تشخیص و درمان آسیب‌های ورزشی، صافی کف پا، آشیل، آرتروز و جراحی تخصصی{% endblock %}">
+<meta name="keywords" content="کلینیک پا, مچ پا, ارتوپدی, جراحی پا, صافی کف پا, آشیل, نوبت آنلاین">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+<meta property="og:title" content="{{ page_title }} | {{ clinic.name_fa|default:'کلینیک پا و مچ پا' }}">
+<meta property="og:description" content="{% block og_desc %}مراقبت تخصصی پا و مچ پا{% endblock %}">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fa_IR">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/public.css' %}">
+{% block extra_head %}{% endblock %}
+</head>
+<body class="public-site">
+<header class="pub-header">
+    <div class="pub-container pub-header-inner">
+        <a href="{% url 'public:home' %}" class="pub-logo">
+            <span class="pub-logo-mark">🦶</span>
+            <span>{{ clinic.name_fa|default:"کلینیک پا و مچ پا" }}</span>
+        </a>
+        <nav class="pub-nav">
+            <a href="{% url 'public:home' %}">{% trans "خانه" %}</a>
+            <a href="{% url 'public:services' %}">{% trans "خدمات" %}</a>
+            <a href="{% url 'public:about' %}">{% trans "پزشکان" %}</a>
+            <a href="{% url 'public:contact' %}">{% trans "تماس" %}</a>
+            <a href="{% url 'public:book' %}" class="pub-cta">{% trans "رزرو نوبت" %}</a>
+        </nav>
+    </div>
+</header>
+{% if messages %}
+<div class="pub-container" style="padding-top:1rem;">
+{% for m in messages %}<div class="card" style="padding:0.75rem 1rem;margin-bottom:0.5rem;border-inline-start:4px solid var(--color-primary-teal);">{{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+{% block content %}{% endblock %}
+<footer class="pub-footer">
+    <div class="pub-container pub-footer-grid">
+        <div>
+            <strong>{{ clinic.name_fa|default:"کلینیک پا و مچ پا" }}</strong>
+            <p class="text-sm" style="opacity:0.8;margin-top:0.5rem;">{{ clinic.name_en }}</p>
+        </div>
+        <div class="text-sm">
+            <div>{{ clinic.address }}</div>
+            <div>{{ clinic.phone }}</div>
+            <div>{{ clinic.email }}</div>
+        </div>
+        <div class="text-sm">
+            <a href="{% url 'public:book' %}">{% trans "نوبت آنلاین" %}</a><br>
+            <a href="{% url 'accounts:login' %}">{% trans "ورود پرسنل" %}</a>
+        </div>
+    </div>
+    <div class="pub-container text-sm" style="opacity:0.6;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);margin-top:1.5rem;">
+        © {% now "Y" %} {{ clinic.name_fa|default:"کلینیک پا و مچ پا" }}
+    </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="grid grid-cols-2 gap-6">
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "کاتالوگ تشخیص" %}</h3></div>
+<div class="card-body" style="padding:0;">
+{% if catalog %}
+<table class="data-table">
+<thead><tr><th>{% trans "کد" %}</th><th>{% trans "عنوان" %}</th><th>{% trans "دسته" %}</th></tr></thead>
+<tbody>
+{% for c in catalog %}
+<tr><td><code>{{ c.code }}</code></td><td>{% if LANGUAGE_CODE == 'en' and c.title_en %}{{ c.title_en }}{% else %}{{ c.title_fa }}{% endif %}</td><td class="text-sm text-muted">{{ c.category }}</td></tr>
+{% endfor %}
+</tbody></table>
+{% else %}<div class="empty-state"><p class="text-sm">{% trans "کاتالوگ خالی است" %}</p></div>{% endif %}
+</div></div>
+<div class="card">
+<div class="card-header"><h3 class="mb-0">{% trans "تشخیص‌های اخیر ویزیت‌ها" %}</h3></div>
+<div class="card-body" style="padding:0;">
+{% if recent %}
+<table class="data-table">
+<thead><tr><th>{% trans "تشخیص" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "تاریخ" %}</th></tr></thead>
+<tbody>
+{% for d in recent %}
+<tr>
+<td>{{ d.title }} {% if d.code %}<code class="text-xs">{{ d.code }}</code>{% endif %}</td>
+<td class="text-sm"><a href="{% url 'encounters:workspace' d.encounter_id %}">{{ d.encounter.patient.full_name }}</a></td>
+<td class="text-sm">{{ d.created_at|clinic_date }}</td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% else %}<div class="empty-state"><p class="text-sm">{% trans "تشخیصی ثبت نشده" %}</p></div>{% endif %}
+</div></div>
+</div>
+{% endblock %}

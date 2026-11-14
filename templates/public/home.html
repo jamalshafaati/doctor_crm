@@ -1,0 +1,36 @@
+{% extends "public/base_public.html" %}
+{% load i18n %}
+{% block meta_description %}کلینیک تخصصی پا و مچ پا — معاینه، تصویربرداری، جراحی و توانبخشی با رویکرد علمی. رزرو نوبت آنلاین.{% endblock %}
+{% block content %}
+<section class="pub-hero">
+    <div class="pub-container">
+        <h1>{{ clinic.name_fa|default:"کلینیک تخصصی پا و مچ پا" }}</h1>
+        <p>{% trans "تشخیص و درمان تخصصی آسیب‌های ورزشی، صافی کف پا، مشکلات آشیل، دفورمیتی و آرتروز مچ پا — با پرونده الکترونیکی و پیگیری منظم." %}</p>
+        <div class="pub-hero-actions">
+            <a href="{% url 'public:book' %}" class="pub-btn pub-btn-primary">{% trans "رزرو نوبت آنلاین" %}</a>
+            <a href="{% url 'public:services' %}" class="pub-btn pub-btn-outline">{% trans "مشاهده خدمات" %}</a>
+        </div>
+    </div>
+</section>
+<section class="pub-section">
+    <div class="pub-container">
+        <h2 class="pub-section-title">{% trans "خدمات تخصصی" %}</h2>
+        <p class="pub-section-sub">{% trans "مراقبت کامل از تشخیص تا جراحی و پیگیری" %}</p>
+        <div class="pub-grid-3">
+            <div class="pub-card"><div class="pub-icon">🦴</div><h3>{% trans "تروما و شکستگی" %}</h3><p>{% trans "ارزیابی و درمان پیچ‌خوردگی، شکستگی قوزک و آسیب‌های حاد مچ پا." %}</p></div>
+            <div class="pub-card"><div class="pub-icon">🏃</div><h3>{% trans "آسیب‌های ورزشی" %}</h3><p>{% trans "لیگامان، ناپایداری مزمن، برنامه‌ریزی بازگشت به ورزش." %}</p></div>
+            <div class="pub-card"><div class="pub-icon">💪</div><h3>{% trans "تاندون آشیل" %}</h3><p>{% trans "پارگی حاد و تاندینوپاتی با پروتکل‌های روزآمد." %}</p></div>
+            <div class="pub-card"><div class="pub-icon">👟</div><h3>{% trans "صافی کف پا" %}</h3><p>{% trans "ارزیابی بیومکانیک، ارتز و در صورت نیاز جراحی." %}</p></div>
+            <div class="pub-card"><div class="pub-icon">🔬</div><h3>{% trans "آرتروز و دفورمیتی" %}</h3><p>{% trans "هالوکس والگوس، انگشت چکشی، آرتروز مچ و ساب‌تالار." %}</p></div>
+            <div class="pub-card"><div class="pub-icon">🏥</div><h3>{% trans "جراحی و پیگیری" %}</h3><p>{% trans "ثبت دقیق عمل، ایمپلنت و برنامه پیگیری پس از عمل." %}</p></div>
+        </div>
+    </div>
+</section>
+<section class="pub-section" style="background:#fff;">
+    <div class="pub-container" style="text-align:center;">
+        <h2 class="pub-section-title">{% trans "همین حالا نوبت بگیرید" %}</h2>
+        <p class="pub-section-sub">{% trans "فرم آنلاین — هماهنگی توسط پذیرش کلینیک" %}</p>
+        <a href="{% url 'public:book' %}" class="pub-btn pub-btn-primary" style="background:var(--color-primary-teal);color:#fff;">{% trans "فرم رزرو نوبت" %}</a>
+    </div>
+</section>
+{% endblock %}

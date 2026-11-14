@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="card"><div class="card-body" style="padding:0;">
+{% if plans %}
+<table class="data-table">
+<thead><tr><th>{% trans "ویزیت" %}</th><th>{% trans "بیمار" %}</th><th>{% trans "وضعیت" %}</th><th>{% trans "تاریخ" %}</th><th></th></tr></thead>
+<tbody>
+{% for p in plans %}
+<tr>
+<td>#{{ p.encounter_id }}</td>
+<td>{{ p.encounter.patient.full_name }}</td>
+<td><span class="badge badge-neutral">{{ p.get_status_display }}</span></td>
+<td class="text-sm">{{ p.created_at|clinic_date }}</td>
+<td><a href="{% url 'encounters:workspace' p.encounter_id %}" class="btn btn-ghost btn-sm">{% trans "ویزیت" %}</a></td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% else %}
+<div class="empty-state"><h3>{% trans "طرح درمانی ثبت نشده" %}</h3>
+<p class="text-sm">{% trans "از فضای کاری ویزیت می‌توانید طرح درمان ثبت کنید." %}</p></div>
+{% endif %}
+</div></div>
+{% endblock %}

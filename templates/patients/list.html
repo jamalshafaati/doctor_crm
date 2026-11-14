@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div><h1>{{ page_title }}</h1></div>
+    <a href="{% url 'patients:create' %}" class="btn btn-primary"><i data-lucide="user-plus" style="width:16px;height:16px;"></i> {% trans "بیمار جدید" %}</a>
+</div>
+<div class="card mb-4"><div class="card-body">
+<form method="get" class="grid grid-cols-4 gap-3" style="align-items:end;">
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "جستجو" %}</label>
+        <input type="text" name="q" class="form-input" value="{{ q }}" placeholder="{% trans 'نام، پرونده، تلفن، کد ملی' %}">
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "جنسیت" %}</label>
+        <select name="gender" class="form-select">
+            <option value="">{% trans "همه" %}</option>
+            <option value="male" {% if gender == 'male' %}selected{% endif %}>{% trans "مرد" %}</option>
+            <option value="female" {% if gender == 'female' %}selected{% endif %}>{% trans "زن" %}</option>
+        </select>
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "جراحی" %}</label>
+        <select name="has_surgery" class="form-select">
+            <option value="">{% trans "همه" %}</option>
+            <option value="1" {% if has_surgery == '1' %}selected{% endif %}>{% trans "دارای جراحی" %}</option>
+            <option value="0" {% if has_surgery == '0' %}selected{% endif %}>{% trans "بدون جراحی" %}</option>
+        </select>
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "آلرژی" %}</label>
+        <select name="has_allergy" class="form-select">
+            <option value="">{% trans "همه" %}</option>
+            <option value="1" {% if has_allergy == '1' %}selected{% endif %}>{% trans "دارای آلرژی فعال" %}</option>
+        </select>
+    </div>
+    <div class="flex gap-2" style="grid-column:1/-1;">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "اعمال فیلتر" %}</button>
+        <a href="{% url 'patients:list' %}" class="btn btn-ghost btn-sm">{% trans "پاک کردن" %}</a>
+    </div>
+</form>
+</div></div>
+<div class="card"><div class="card-body" style="padding:0;">
+{% if page_obj %}
+<table class="data-table">
+<thead><tr>
+<th>{% trans "شماره پرونده" %}</th>
+<th>{% trans "نام" %}</th>
+<th>{% trans "تلفن" %}</th>
+<th>{% trans "جنسیت" %}</th>
+<th>{% trans "ثبت" %}</th>
+<th></th>
+</tr></thead>
+<tbody>
+{% for p in page_obj %}
+<tr>
+<td><code>{{ p.patient_number }}</code></td>
+<td class="font-medium"><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a></td>
+<td class="text-sm">{{ p.phone|default:"—" }}</td>
+<td class="text-sm">{{ p.get_gender_display|default:"—" }}</td>
+<td class="text-sm">{{ p.registered_at|clinic_date }}</td>
+<td><a href="{% url 'patients:detail' p.pk %}" class="btn btn-ghost btn-sm">{% trans "پرونده" %}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% if page_obj.has_other_pages %}
+<div style="padding:1rem;" class="flex gap-2">
+{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&gender={{ gender }}&has_surgery={{ has_surgery }}&has_allergy={{ has_allergy }}" class="btn btn-ghost btn-sm">{% trans "قبلی" %}</a>{% endif %}
+<span class="text-sm text-muted">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}&gender={{ gender }}&has_surgery={{ has_surgery }}&has_allergy={{ has_allergy }}" class="btn btn-ghost btn-sm">{% trans "بعدی" %}</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state"><h3>{% trans "بیماری یافت نشد" %}</h3>
+<a href="{% url 'patients:create' %}" class="btn btn-primary btn-sm mt-4">{% trans "ثبت بیمار" %}</a></div>
+{% endif %}
+</div></div>
+{% endblock %}

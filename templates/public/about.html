@@ -1,0 +1,20 @@
+{% extends "public/base_public.html" %}
+{% load i18n %}
+{% block content %}
+<section class="pub-section">
+<div class="pub-container">
+<h1 class="pub-section-title">{% trans "پزشکان و تیم درمان" %}</h1>
+<p class="pub-section-sub">{{ clinic.name_fa }} — {{ clinic.name_en }}</p>
+<div class="pub-grid-3">
+{% for d in doctors %}
+<div class="pub-card">
+<h3>{{ d.get_full_name|default:d.username }}</h3>
+<p>{% if d.doctor_profile %}{% if d.doctor_profile.specialty %}{{ d.doctor_profile.specialty }}{% else %}{% trans "متخصص پا و مچ پا" %}{% endif %}{% else %}{% trans "متخصص پا و مچ پا" %}{% endif %}</p>
+</div>
+{% empty %}
+<div class="pub-card"><h3>{% trans "تیم تخصصی" %}</h3><p>{% trans "اطلاعات پزشکان به‌زودی تکمیل می‌شود." %}</p></div>
+{% endfor %}
+</div>
+</div>
+</section>
+{% endblock %}

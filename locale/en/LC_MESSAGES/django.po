@@ -1,0 +1,151 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "کلینیک پا و مچ پا"
+msgstr "Foot & Ankle Clinic"
+
+msgid "داشبورد"
+msgstr "Dashboard"
+
+msgid "بیماران"
+msgstr "Patients"
+
+msgid "نوبت‌دهی"
+msgstr "Appointments"
+
+msgid "ویزیت‌ها"
+msgstr "Encounters"
+
+msgid "تشخیص‌ها"
+msgstr "Diagnoses"
+
+msgid "تصویربرداری"
+msgstr "Imaging"
+
+msgid "طرح درمان"
+msgstr "Treatment Plans"
+
+msgid "نسخه‌ها"
+msgstr "Prescriptions"
+
+msgid "جراحی"
+msgstr "Surgery"
+
+msgid "پیگیری‌ها"
+msgstr "Follow-ups"
+
+msgid "آمار و گزارش"
+msgstr "Reports"
+
+msgid "اعلان‌ها"
+msgstr "Notifications"
+
+msgid "تنظیمات کلینیک"
+msgstr "Clinic Settings"
+
+msgid "پزشک"
+msgstr "Doctor"
+
+msgid "پذیرش"
+msgstr "Reception"
+
+msgid "مدیر"
+msgstr "Admin"
+
+msgid "بیمار"
+msgstr "Patient"
+
+msgid "خروج"
+msgstr "Logout"
+
+msgid "ورود"
+msgstr "Login"
+
+msgid "نام کاربری"
+msgstr "Username"
+
+msgid "رمز عبور"
+msgstr "Password"
+
+msgid "ثبت بیمار جدید"
+msgstr "New Patient"
+
+msgid "رزرو نوبت"
+msgstr "Book Appointment"
+
+msgid "چک‌این"
+msgstr "Check-in"
+
+msgid "جستجو"
+msgstr "Search"
+
+msgid "انصراف"
+msgstr "Cancel"
+
+msgid "ذخیره"
+msgstr "Save"
+
+msgid "ثبت"
+msgstr "Submit"
+
+msgid "ویرایش"
+msgstr "Edit"
+
+msgid "مشاهده"
+msgstr "View"
+
+msgid "جزئیات"
+msgstr "Details"
+
+msgid "وضعیت"
+msgstr "Status"
+
+msgid "تاریخ"
+msgstr "Date"
+
+msgid "بیمار"
+msgstr "Patient"
+
+msgid "لیست بیماران"
+msgstr "Patient List"
+
+msgid "ثبت بیمار"
+msgstr "Register Patient"
+
+msgid "اصلی"
+msgstr "Main"
+
+msgid "بالینی"
+msgstr "Clinical"
+
+msgid "گزارش و تنظیمات"
+msgstr "Reports & Settings"
+
+msgid "پورتال"
+msgstr "Portal"
+
+msgid "خانه"
+msgstr "Home"
+
+msgid "اسناد"
+msgstr "Documents"
+
+msgid "نوبت‌ها"
+msgstr "Appointments"
+
+msgid "خوش آمدید"
+msgstr "Welcome"
+
+msgid "دسترسی مجاز نیست."
+msgstr "Access denied."
+
+msgid "با موفقیت خارج شدید."
+msgstr "Logged out successfully."
+
+msgid "نام کاربری یا رمز عبور اشتباه است."
+msgstr "Invalid username or password."
+
+msgid "حساب کاربری شما غیرفعال است."
+msgstr "Your account is inactive."

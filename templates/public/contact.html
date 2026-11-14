@@ -1,0 +1,18 @@
+{% extends "public/base_public.html" %}
+{% load i18n %}
+{% block content %}
+<section class="pub-section">
+<div class="pub-container">
+<h1 class="pub-section-title">{% trans "تماس با ما" %}</h1>
+<div class="pub-card" style="max-width:520px;">
+<p><strong>{% trans "آدرس" %}:</strong> {{ clinic.address|default:"—" }}</p>
+<p><strong>{% trans "تلفن" %}:</strong> {{ clinic.phone|default:"—" }}</p>
+<p><strong>{% trans "ایمیل" %}:</strong> {{ clinic.email|default:"—" }}</p>
+<p class="mb-0"><strong>{% trans "ساعات کاری" %}:</strong> {{ clinic.working_hours|default:"—" }}</p>
+<div style="margin-top:1.25rem;">
+<a href="{% url 'public:book' %}" class="pub-btn pub-btn-primary" style="background:var(--color-primary-teal);color:#fff;">{% trans "رزرو نوبت" %}</a>
+</div>
+</div>
+</div>
+</section>
+{% endblock %}

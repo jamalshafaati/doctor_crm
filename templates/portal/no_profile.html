@@ -1,0 +1,9 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="empty-state">
+<h3>{% trans "پروفایل بیمار متصل نیست" %}</h3>
+<p class="text-sm">{% trans "حساب کاربری شما هنوز به پرونده بیمار متصل نشده است. با پذیرش تماس بگیرید." %}</p>
+</div>
+{% endblock %}

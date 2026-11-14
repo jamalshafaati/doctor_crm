@@ -1,0 +1,53 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "داشبورد" %} | {% trans "کلینیک پا و مچ پا" %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1>{% trans "داشبورد" %}</h1>
+    <p class="text-secondary mb-0">
+        {% blocktrans with name=user.get_full_name|default:user.username %}خوش آمدید، {{ name }}{% endblocktrans %}
+    </p>
+</div>
+
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="metric-card">
+        <div class="metric-card-label">{% trans "بیماران امروز" %}</div>
+        <div class="metric-card-value">—</div>
+        <div class="metric-card-change text-muted">{% trans "به زودی" %}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-card-label">{% trans "نوبت‌های امروز" %}</div>
+        <div class="metric-card-value">—</div>
+        <div class="metric-card-change text-muted">{% trans "به زودی" %}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-card-label">{% trans "ویزیت‌های باز" %}</div>
+        <div class="metric-card-value">—</div>
+        <div class="metric-card-change text-muted">{% trans "به زودی" %}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-card-label">{% trans "پیگیری‌های امروز" %}</div>
+        <div class="metric-card-value">—</div>
+        <div class="metric-card-change text-muted">{% trans "به زودی" %}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="mb-0">{% trans "وضعیت سیستم" %}</h3>
+    </div>
+    <div class="card-body">
+        <p class="text-secondary mb-0">
+            {% trans "فاز ۲ در حال تکمیل است. داشبورد کامل در فازهای بعدی با داده‌های واقعی پر خواهد شد." %}
+        </p>
+        <ul class="mt-4 text-sm text-secondary" style="padding-inline-start: 1.25rem;">
+            <li>{% trans "احراز هویت و نقش‌ها آماده است" %}</li>
+            <li>{% trans "پشتیبانی کامل فارسی (RTL) و انگلیسی (LTR)" %}</li>
+            <li>{% trans "سیستم طراحی پریمیوم پیاده‌سازی شد" %}</li>
+            <li>{% trans "مدل کاربر سفارشی و پروفایل‌ها آماده است" %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} | {% trans "کلینیک پا و مچ پا" %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1>{{ page_title }}</h1>
+</div>
+
+<div class="card" style="max-width:720px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="form-error mb-4">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">{{ form.first_name.label }} *</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.last_name.label }} *</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">{{ form.date_of_birth.label }}</label>
+                    {{ form.date_of_birth }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.gender.label }}</label>
+                    {{ form.gender }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">{{ form.phone.label }}</label>
+                    {{ form.phone }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.national_id.label }}</label>
+                    {{ form.national_id }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.address.label }}</label>
+                {{ form.address }}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">{{ form.emergency_contact_name.label }}</label>
+                    {{ form.emergency_contact_name }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.emergency_contact_phone.label }}</label>
+                    {{ form.emergency_contact_phone }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.notes.label }}</label>
+                {{ form.notes }}
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="btn btn-primary">
+                    {% if is_create %}{% trans "ثبت بیمار" %}{% else %}{% trans "ذخیره تغییرات" %}{% endif %}
+                </button>
+                <a href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}" class="btn btn-secondary">
+                    {% trans "انصراف" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

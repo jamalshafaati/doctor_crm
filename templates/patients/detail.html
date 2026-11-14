@@ -1,0 +1,580 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+
+{% block title %}{{ patient.full_name }} | {% trans "پرونده بیمار" %}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-4 flex items-center justify-between" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div class="text-sm text-muted mb-1">{{ patient.patient_number }}
+            {% if not patient.is_active %}<span class="badge badge-danger">{% trans "غیرفعال" %}</span>{% endif %}
+        </div>
+        <h1 style="margin-bottom:0.25rem;">{{ patient.full_name }}</h1>
+        <p class="text-secondary mb-0 text-sm">
+            {% if patient.phone %}{{ patient.phone }} · {% endif %}
+            {{ patient.get_gender_display|default:"" }}
+            {% if patient.date_of_birth %} · {{ patient.date_of_birth|clinic_date }}{% endif %}
+            · {% trans "ثبت" %}: {{ patient.registered_at|clinic_date }}
+        </p>
+    </div>
+    <div class="flex gap-2" style="flex-wrap:wrap;">
+        <a href="{% url 'patients:edit' patient.pk %}" class="btn btn-secondary btn-sm">
+            <i data-lucide="pencil" style="width:14px;height:14px;"></i> {% trans "ویرایش اطلاعات" %}
+        </a>
+        <a href="{% url 'portal:publish' patient.pk %}" class="btn btn-secondary btn-sm">
+            <i data-lucide="share-2" style="width:14px;height:14px;"></i> {% trans "انتشار سند" %}
+        </a>
+        <a href="{% url 'appointments:create' %}?patient={{ patient.pk }}" class="btn btn-secondary btn-sm">
+            <i data-lucide="calendar-plus" style="width:14px;height:14px;"></i> {% trans "رزرو نوبت" %}
+        </a>
+        <a href="{% url 'encounters:create' %}?patient={{ patient.pk }}" class="btn btn-primary btn-sm">
+            <i data-lucide="stethoscope" style="width:14px;height:14px;"></i> {% trans "شروع ویزیت" %}
+        </a>
+    </div>
+</div>
+
+<!-- Active alerts -->
+{% if alerts %}
+<div class="mb-4">
+    {% for a in alerts %}
+    <div class="card" style="padding:0.65rem 1rem;margin-bottom:0.4rem;border-inline-start:4px solid var(--color-danger);">
+        <strong class="text-sm">⚠ {{ a.title }}</strong>
+        {% if a.description %}<span class="text-sm text-secondary"> — {{ a.description }}</span>{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Allergy chips -->
+{% if allergies %}
+<div class="mb-4 flex gap-2 items-center" style="flex-wrap:wrap;">
+    <span class="text-sm font-medium">{% trans "آلرژی:" %}</span>
+    {% for al in allergies %}
+    {% if al.is_active %}
+    <span class="badge badge-{% if al.severity == 'severe' %}danger{% elif al.severity == 'moderate' %}warning{% else %}neutral{% endif %}">
+        {{ al.allergen }}{% if al.reaction %} ({{ al.reaction }}){% endif %}
+    </span>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Tabs -->
+<div x-data="{ tab: '{{ tab|default:"overview" }}' }">
+    <div class="flex gap-1 mb-4" style="border-bottom:1px solid var(--color-border);overflow-x:auto;padding-bottom:0;">
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='overview' && 'btn-secondary'" @click="tab='overview'">{% trans "خلاصه" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='clinical' && 'btn-secondary'" @click="tab='clinical'">{% trans "آلرژی و هشدار" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='history' && 'btn-secondary'" @click="tab='history'">{% trans "سابقه پزشکی" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='appointments' && 'btn-secondary'" @click="tab='appointments'">{% trans "نوبت‌ها" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='encounters' && 'btn-secondary'" @click="tab='encounters'">{% trans "ویزیت‌ها" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='surgery' && 'btn-secondary'" @click="tab='surgery'">{% trans "جراحی و پیگیری" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='documents' && 'btn-secondary'" @click="tab='documents'">{% trans "اسناد و فایل‌ها" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='rx' && 'btn-secondary'" @click="tab='rx'">{% trans "نسخه‌ها" %}</button>
+    </div>
+
+    <!-- ========== OVERVIEW ========== -->
+    <div x-show="tab==='overview'" x-cloak>
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% trans "اطلاعات تماس و هویتی" %}</h3>
+                    <a href="{% url 'patients:edit' patient.pk %}" class="btn btn-ghost btn-sm">{% trans "ویرایش" %}</a>
+                </div>
+                <div class="card-body text-sm">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><span class="text-muted">{% trans "نام" %}:</span> <strong>{{ patient.first_name }}</strong></div>
+                        <div><span class="text-muted">{% trans "نام خانوادگی" %}:</span> <strong>{{ patient.last_name }}</strong></div>
+                        <div><span class="text-muted">{% trans "کد ملی" %}:</span> {{ patient.national_id|default:"—" }}</div>
+                        <div><span class="text-muted">{% trans "جنسیت" %}:</span> {{ patient.get_gender_display|default:"—" }}</div>
+                        <div><span class="text-muted">{% trans "تاریخ تولد" %}:</span> {{ patient.date_of_birth|clinic_date }}</div>
+                        <div><span class="text-muted">{% trans "تلفن" %}:</span> {{ patient.phone|default:"—" }}</div>
+                        <div><span class="text-muted">{% trans "ایمیل" %}:</span> {{ patient.email|default:"—" }}</div>
+                        <div><span class="text-muted">{% trans "شماره پرونده" %}:</span> {{ patient.patient_number }}</div>
+                    </div>
+                    <hr style="border:none;border-top:1px solid var(--color-border);margin:1rem 0;">
+                    <p><span class="text-muted">{% trans "آدرس" %}:</span> {{ patient.address|default:"—" }}</p>
+                    <p class="mb-0"><span class="text-muted">{% trans "تماس اضطراری" %}:</span>
+                        {{ patient.emergency_contact_name|default:"—" }}
+                        {% if patient.emergency_contact_phone %} ({{ patient.emergency_contact_phone }}){% endif %}
+                    </p>
+                    {% if patient.notes %}
+                    <hr style="border:none;border-top:1px solid var(--color-border);margin:1rem 0;">
+                    <p class="mb-0"><span class="text-muted">{% trans "یادداشت" %}:</span> {{ patient.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3 class="mb-0">{% trans "خلاصه بالینی" %}</h3></div>
+                <div class="card-body text-sm">
+                    <p><span class="text-muted">{% trans "آلرژی فعال" %}:</span>
+                        {% for al in allergies %}{% if al.is_active %}<span class="badge badge-warning" style="margin:2px;">{{ al.allergen }}</span>{% endif %}{% empty %}—{% endfor %}
+                    </p>
+                    {% if history %}
+                    {% if history.current_medications %}<p><span class="text-muted">{% trans "داروهای فعلی" %}:</span> {{ history.current_medications|truncatewords:25 }}</p>{% endif %}
+                    {% if history.past_medical_history %}<p><span class="text-muted">{% trans "سابقه پزشکی" %}:</span> {{ history.past_medical_history|truncatewords:20 }}</p>{% endif %}
+                    {% if history.previous_foot_ankle_treatments %}<p class="mb-0"><span class="text-muted">{% trans "درمان‌های پا و مچ" %}:</span> {{ history.previous_foot_ankle_treatments|truncatewords:20 }}</p>{% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0">{% trans "سابقه پزشکی ثبت نشده — از تب سابقه تکمیل کنید." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% trans "نوبت‌های اخیر" %}</h3>
+                    <a href="{% url 'appointments:create' %}?patient={{ patient.pk }}" class="btn btn-ghost btn-sm">+ {% trans "نوبت" %}</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if appointments %}
+                    <table class="data-table">
+                        <thead><tr><th>{% trans "زمان" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "وضعیت" %}</th></tr></thead>
+                        <tbody>
+                        {% for a in appointments %}
+                        <tr>
+                            <td class="text-sm">{{ a.scheduled_at|clinic_datetime }}</td>
+                            <td class="text-sm">{{ a.doctor.get_full_name|default:a.doctor.username }}</td>
+                            <td><span class="badge badge-neutral">{{ a.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "نوبتی ثبت نشده" %}</p></div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% trans "ویزیت‌های اخیر" %}</h3>
+                    <a href="{% url 'encounters:create' %}?patient={{ patient.pk }}" class="btn btn-ghost btn-sm">+ {% trans "ویزیت" %}</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if encounters %}
+                    <table class="data-table">
+                        <thead><tr><th>{% trans "تاریخ" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                        <tbody>
+                        {% for e in encounters %}
+                        <tr>
+                            <td class="text-sm">{{ e.started_at|clinic_date }}</td>
+                            <td class="text-sm">{{ e.doctor.get_full_name|default:e.doctor.username }}</td>
+                            <td><span class="badge badge-neutral">{{ e.get_status_display }}</span></td>
+                            <td><a href="{% url 'encounters:workspace' e.pk %}" class="btn btn-ghost btn-sm">{% trans "باز" %}</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "ویزیتی ثبت نشده" %}</p></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CLINICAL: Allergies + Alerts ========== -->
+    <div x-show="tab==='clinical'" x-cloak>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header"><h3 class="mb-0">{% trans "آلرژی‌ها" %}</h3></div>
+                <div class="card-body">
+                    {% if allergies %}
+                    <table class="data-table" style="margin-bottom:1rem;">
+                        <thead><tr><th>{% trans "آلرژن" %}</th><th>{% trans "واکنش" %}</th><th>{% trans "شدت" %}</th><th></th></tr></thead>
+                        <tbody>
+                        {% for al in allergies %}
+                        <tr style="{% if not al.is_active %}opacity:0.5;{% endif %}">
+                            <td class="font-medium">{{ al.allergen }}</td>
+                            <td class="text-sm">{{ al.reaction|default:"—" }}</td>
+                            <td><span class="badge badge-{% if al.severity == 'severe' %}danger{% elif al.severity == 'moderate' %}warning{% else %}neutral{% endif %}">{{ al.get_severity_display }}</span></td>
+                            <td>
+                                {% if al.is_active %}
+                                <form method="post" action="{% url 'patients:allergy_delete' patient.pk al.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('{% trans "غیرفعال شود؟" %}')">{% trans "حذف" %}</button>
+                                </form>
+                                {% else %}<span class="text-xs text-muted">{% trans "غیرفعال" %}</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted text-sm mb-4">{% trans "آلرژی ثبت نشده است." %}</p>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'patients:allergy_add' patient.pk %}">
+                        {% csrf_token %}
+                        <h4 class="text-sm font-medium mb-3">{% trans "ثبت آلرژی جدید" %}</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="form-group">
+                                <label class="form-label">{% trans "آلرژن" %} *</label>
+                                <input type="text" name="allergen" class="form-input" required placeholder="{% trans 'مثلاً پنی‌سیلین' %}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">{% trans "شدت" %}</label>
+                                <select name="severity" class="form-select">
+                                    <option value="mild">{% trans "خفیف" %}</option>
+                                    <option value="moderate" selected>{% trans "متوسط" %}</option>
+                                    <option value="severe">{% trans "شدید" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "واکنش" %}</label>
+                            <input type="text" name="reaction" class="form-input" placeholder="{% trans 'مثلاً راش پوستی' %}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "یادداشت" %}</label>
+                            <textarea name="notes" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <input type="hidden" name="is_active" value="on">
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "ثبت آلرژی" %}</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3 class="mb-0">{% trans "هشدارهای بالینی" %}</h3></div>
+                <div class="card-body">
+                    {% if alerts %}
+                    {% for a in alerts %}
+                    <div class="mb-3" style="padding:0.75rem;background:#fef2f2;border-radius:0.5rem;">
+                        <strong class="text-sm">{{ a.title }}</strong>
+                        {% if a.description %}<p class="text-sm mb-0 mt-1">{{ a.description }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-sm mb-4">{% trans "هشداری ثبت نشده." %}</p>
+                    {% endif %}
+
+                    {% if user.is_doctor or user.role == 'admin' %}
+                    <form method="post" action="{% url 'patients:alert_add' patient.pk %}">
+                        {% csrf_token %}
+                        <h4 class="text-sm font-medium mb-3">{% trans "ثبت هشدار جدید" %}</h4>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عنوان" %} *</label>
+                            <input type="text" name="title" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "توضیحات" %}</label>
+                            <textarea name="description" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <input type="hidden" name="is_active" value="on">
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "ثبت هشدار" %}</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MEDICAL HISTORY ========== -->
+    <div x-show="tab==='history'" x-cloak>
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">{% trans "سابقه پزشکی" %}</h3></div>
+            <div class="card-body">
+                {% if user.is_doctor or user.role == 'admin' %}
+                <form method="post" action="{% url 'patients:history_save' patient.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">{% trans "سابقه پزشکی" %}</label>
+                        <textarea name="past_medical_history" class="form-textarea" rows="3">{{ history.past_medical_history|default:"" }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "سابقه جراحی" %}</label>
+                        <textarea name="past_surgical_history" class="form-textarea" rows="3">{{ history.past_surgical_history|default:"" }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "داروهای فعلی" %}</label>
+                        <textarea name="current_medications" class="form-textarea" rows="3">{{ history.current_medications|default:"" }}</textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "سابقه خانوادگی" %}</label>
+                            <textarea name="family_history" class="form-textarea" rows="3">{{ history.family_history|default:"" }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "سابقه اجتماعی" %}</label>
+                            <textarea name="social_history" class="form-textarea" rows="3">{{ history.social_history|default:"" }}</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "آسیب‌های قبلی" %}</label>
+                        <textarea name="previous_injuries" class="form-textarea" rows="2">{{ history.previous_injuries|default:"" }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "درمان‌های قبلی پا و مچ پا" %}</label>
+                        <textarea name="previous_foot_ankle_treatments" class="form-textarea" rows="3">{{ history.previous_foot_ankle_treatments|default:"" }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{% trans "ذخیره سابقه پزشکی" %}</button>
+                </form>
+                {% else %}
+                <div class="text-sm">
+                    {% if history %}
+                    <p><strong>{% trans "سابقه پزشکی" %}:</strong> {{ history.past_medical_history|default:"—"|linebreaksbr }}</p>
+                    <p><strong>{% trans "سابقه جراحی" %}:</strong> {{ history.past_surgical_history|default:"—"|linebreaksbr }}</p>
+                    <p><strong>{% trans "داروها" %}:</strong> {{ history.current_medications|default:"—"|linebreaksbr }}</p>
+                    {% else %}<p class="text-muted">{% trans "سابقه‌ای ثبت نشده" %}</p>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== APPOINTMENTS ========== -->
+    <div x-show="tab==='appointments'" x-cloak>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "همه نوبت‌ها" %}</h3>
+                <a href="{% url 'appointments:create' %}?patient={{ patient.pk }}" class="btn btn-primary btn-sm">+ {% trans "رزرو نوبت" %}</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+                {% if appointments %}
+                <table class="data-table">
+                    <thead><tr><th>{% trans "زمان" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "علت" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                    <tbody>
+                    {% for a in appointments %}
+                    <tr>
+                        <td class="text-sm font-medium">{{ a.scheduled_at|clinic_datetime }}</td>
+                        <td class="text-sm">{{ a.doctor.get_full_name|default:a.doctor.username }}</td>
+                        <td class="text-sm text-muted">{{ a.reason|default:"—" }}</td>
+                        <td><span class="badge badge-neutral">{{ a.get_status_display }}</span></td>
+                        <td>
+                            {% if a.status == 'scheduled' or a.status == 'confirmed' %}
+                            <a href="{% url 'appointments:check_in' a.pk %}" class="btn btn-primary btn-sm">{% trans "چک‌این" %}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state"><p class="text-sm mb-0">{% trans "نوبتی ثبت نشده" %}</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== ENCOUNTERS ========== -->
+    <div x-show="tab==='encounters'" x-cloak>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "ویزیت‌ها" %}</h3>
+                <a href="{% url 'encounters:create' %}?patient={{ patient.pk }}" class="btn btn-primary btn-sm">+ {% trans "ویزیت جدید" %}</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+                {% if encounters %}
+                <table class="data-table">
+                    <thead><tr><th>#</th><th>{% trans "تاریخ" %}</th><th>{% trans "پزشک" %}</th><th>{% trans "شکایت" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                    <tbody>
+                    {% for e in encounters %}
+                    <tr>
+                        <td>{{ e.pk }}</td>
+                        <td class="text-sm">{{ e.started_at|clinic_datetime }}</td>
+                        <td class="text-sm">{{ e.doctor.get_full_name|default:e.doctor.username }}</td>
+                        <td class="text-sm text-muted">{{ e.chief_complaint|truncatewords:8|default:"—" }}</td>
+                        <td><span class="badge badge-neutral">{{ e.get_status_display }}</span></td>
+                        <td><a href="{% url 'encounters:workspace' e.pk %}" class="btn btn-primary btn-sm">{% trans "فضای کاری" %}</a></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state"><p class="text-sm mb-0">{% trans "ویزیتی ثبت نشده" %}</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SURGERY + FOLLOWUPS ========== -->
+    <div x-show="tab==='surgery'" x-cloak>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% trans "جراحی‌ها" %}</h3>
+                    <a href="{% url 'surgery:create' %}?patient={{ patient.pk }}" class="btn btn-ghost btn-sm">+ {% trans "ثبت" %}</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if surgeries %}
+                    <table class="data-table">
+                        <thead><tr><th>{% trans "تاریخ" %}</th><th>{% trans "عمل" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                        <tbody>
+                        {% for s in surgeries %}
+                        <tr>
+                            <td class="text-sm">{{ s.surgery_date|clinic_date }}</td>
+                            <td class="text-sm">{{ s.procedure }}</td>
+                            <td><span class="badge badge-neutral">{{ s.get_status_display }}</span></td>
+                            <td><a href="{% url 'surgery:detail' s.pk %}" class="btn btn-ghost btn-sm">{% trans "جزئیات" %}</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "جراحی ثبت نشده" %}</p></div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{% trans "پیگیری‌ها" %}</h3>
+                    <a href="{% url 'followups:create' %}?patient={{ patient.pk }}" class="btn btn-ghost btn-sm">+ {% trans "ثبت" %}</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    {% if followups %}
+                    <table class="data-table">
+                        <thead><tr><th>{% trans "تاریخ" %}</th><th>{% trans "درد" %}</th><th>{% trans "وضعیت" %}</th><th></th></tr></thead>
+                        <tbody>
+                        {% for f in followups %}
+                        <tr>
+                            <td class="text-sm">{{ f.scheduled_date|clinic_date }}</td>
+                            <td class="text-sm">{{ f.pain_score|default:"—" }}</td>
+                            <td><span class="badge badge-neutral">{{ f.get_status_display }}</span></td>
+                            <td><a href="{% url 'followups:detail' f.pk %}" class="btn btn-ghost btn-sm">{% trans "جزئیات" %}</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;"><p class="text-sm mb-0">{% trans "پیگیری ثبت نشده" %}</p></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== DOCUMENTS ========== -->
+    <div x-show="tab==='documents'" x-cloak>
+        <div class="card mb-6">
+            <div class="card-header"><h3 class="mb-0">{% trans "آپلود سند / فایل" %}</h3></div>
+            <div class="card-body">
+                <form method="post" action="{% url 'patients:document_upload' patient.pk %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عنوان" %}</label>
+                            <input type="text" name="title" class="form-input" placeholder="{% trans 'اختیاری — پیش‌فرض نام فایل' %}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "دسته" %}</label>
+                            <select name="category" class="form-select">
+                                {% for v, l in doc_categories %}
+                                <option value="{{ v }}">{{ l }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "فایل" %} *</label>
+                            <input type="file" name="file" class="form-input" required
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.txt">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "توضیحات" %}</label>
+                        <textarea name="description" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <p class="text-xs text-muted mb-3">{% trans "حداکثر ۱۵ مگابایت — PDF، تصویر، Word، Excel" %}</p>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="upload" style="width:16px;height:16px;"></i> {% trans "آپلود فایل" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-6">
+            <div class="card-header"><h3 class="mb-0">{% trans "فایل‌های آپلودشده" %}</h3></div>
+            <div class="card-body" style="padding:0;">
+                {% if documents %}
+                <table class="data-table">
+                    <thead><tr><th>{% trans "عنوان" %}</th><th>{% trans "دسته" %}</th><th>{% trans "حجم" %}</th><th>{% trans "تاریخ" %}</th><th></th></tr></thead>
+                    <tbody>
+                    {% for d in documents %}
+                    <tr>
+                        <td>
+                            <strong class="text-sm">{{ d.title }}</strong>
+                            {% if d.original_filename %}<div class="text-xs text-muted">{{ d.original_filename }}</div>{% endif %}
+                        </td>
+                        <td><span class="badge badge-neutral">{{ d.get_category_display }}</span></td>
+                        <td class="text-sm text-muted">{% if d.file_size %}{{ d.file_size|filesizeformat }}{% else %}—{% endif %}</td>
+                        <td class="text-sm">{{ d.created_at|clinic_date }}</td>
+                        <td>
+                            <a href="{% url 'patients:document_download' patient.pk d.pk %}" class="btn btn-ghost btn-sm">
+                                <i data-lucide="download" style="width:14px;height:14px;"></i> {% trans "دانلود" %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state"><p class="text-sm mb-0">{% trans "فایلی آپلود نشده" %}</p></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if published_docs %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "اسناد منتشرشده در پورتال بیمار" %}</h3>
+                <a href="{% url 'portal:publish' patient.pk %}" class="btn btn-ghost btn-sm">+ {% trans "انتشار" %}</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <table class="data-table">
+                    <thead><tr><th>{% trans "عنوان" %}</th><th>{% trans "نوع" %}</th><th>{% trans "تاریخ" %}</th></tr></thead>
+                    <tbody>
+                    {% for d in published_docs %}
+                    <tr>
+                        <td>{{ d.title }}</td>
+                        <td><span class="badge badge-teal">{{ d.get_doc_type_display }}</span></td>
+                        <td class="text-sm">{{ d.published_at|clinic_date }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========== PRESCRIPTIONS ========== -->
+    <div x-show="tab==='rx'" x-cloak>
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">{% trans "نسخه‌ها" %}</h3></div>
+            <div class="card-body">
+                {% if prescriptions %}
+                {% for rx in prescriptions %}
+                <div class="mb-4" style="border-bottom:1px solid var(--color-border);padding-bottom:1rem;">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="badge badge-neutral">{{ rx.get_status_display }}</span>
+                        <span class="text-sm text-muted">{{ rx.created_at|clinic_date }}</span>
+                        {% if rx.encounter_id %}
+                        <a href="{% url 'encounters:workspace' rx.encounter_id %}" class="text-sm">{% trans "ویزیت" %} #{{ rx.encounter_id }}</a>
+                        {% endif %}
+                    </div>
+                    <ul style="padding-inline-start:1.2rem;margin:0;">
+                        {% for item in rx.items.all %}
+                        <li class="text-sm">{{ item.medication_name }}
+                            {% if item.dosage %} — {{ item.dosage }}{% endif %}
+                            {% if item.frequency %} · {{ item.frequency }}{% endif %}
+                            {% if item.duration %} · {{ item.duration }}{% endif %}
+                            {% if item.instructions %}<div class="text-xs text-muted">{{ item.instructions }}</div>{% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="text-sm text-muted">{% trans "بدون قلم دارو" %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state"><p class="text-sm mb-0">{% trans "نسخه‌ای ثبت نشده" %}</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>[x-cloak]{display:none!important;}</style>
+{% endblock %}

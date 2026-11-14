@@ -1,0 +1,48 @@
+{% load i18n %}
+<header class="topbar">
+    <div class="topbar-left">
+        <button type="button" class="btn btn-ghost" @click="sidebarOpen = !sidebarOpen"
+                style="display:none;" x-bind:style="window.innerWidth < 1024 ? 'display: inline-flex' : 'display: none'">
+            <i data-lucide="menu" style="width:20px;height:20px;"></i>
+        </button>
+        <div class="text-sm text-muted">
+            {% block breadcrumb %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <!-- Language Switcher — posts to set_language, stores cookie + session -->
+        <form action="{% url 'set_language' %}" method="post" id="lang-form" style="display:inline;">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <select name="language" class="form-select" style="width:auto;padding:0.35rem 0.6rem;font-size:0.8rem;"
+                    onchange="document.getElementById('lang-form').submit()">
+                {% get_current_language as CURRENT_LANG %}
+                <option value="fa" {% if CURRENT_LANG == 'fa' %}selected{% endif %}>فارسی</option>
+                <option value="en" {% if CURRENT_LANG == 'en' %}selected{% endif %}>English</option>
+            </select>
+        </form>
+
+        <a href="{% url 'notifications:list' %}" class="btn btn-ghost btn-sm" title="{% trans 'اعلان‌ها' %}">
+            <i data-lucide="bell" style="width:18px;height:18px;"></i>
+        </a>
+
+        {% if user.is_authenticated %}
+        <div class="flex items-center gap-3">
+            <div style="text-align:end;">
+                <div class="text-sm font-medium">{{ user.get_full_name|default:user.username }}</div>
+                <div class="text-xs text-muted">
+                    {% if user.is_doctor %}{% trans "پزشک" %}
+                    {% elif user.is_receptionist %}{% trans "پذیرش" %}
+                    {% elif user.role == 'admin' %}{% trans "مدیر" %}
+                    {% elif user.is_patient %}{% trans "بیمار" %}
+                    {% else %}{% trans "کاربر" %}{% endif %}
+                </div>
+            </div>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-ghost btn-sm" title="{% trans 'خروج' %}">
+                <i data-lucide="log-out" style="width:18px;height:18px;"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</header>

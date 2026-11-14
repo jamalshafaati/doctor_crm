@@ -1,0 +1,33 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1></div>
+<div class="card" style="max-width:720px;"><div class="card-body">
+<form method="post">{% csrf_token %}
+{% if form.non_field_errors %}<div class="form-error mb-4">{{ form.non_field_errors }}</div>{% endif %}
+<div class="grid grid-cols-2 gap-4">
+<div class="form-group"><label class="form-label">{{ form.patient.label }} *</label>{{ form.patient }}</div>
+<div class="form-group"><label class="form-label">{{ form.surgeon.label }} *</label>{{ form.surgeon }}</div>
+</div>
+<div class="form-group"><label class="form-label">{{ form.procedure.label }} *</label>{{ form.procedure }}</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="form-group"><label class="form-label">{{ form.surgery_date.label }} *</label>{{ form.surgery_date }}</div>
+<div class="form-group"><label class="form-label">{{ form.status.label }}</label>{{ form.status }}</div>
+<div class="form-group"><label class="form-label">{{ form.side.label }}</label>{{ form.side }}</div>
+</div>
+<div class="form-group"><label class="form-label">{{ form.indication.label }}</label>{{ form.indication }}</div>
+<div class="form-group"><label class="form-label">{{ form.preoperative_diagnosis.label }}</label>{{ form.preoperative_diagnosis }}</div>
+<div class="form-group"><label class="form-label">{{ form.postoperative_diagnosis.label }}</label>{{ form.postoperative_diagnosis }}</div>
+<div class="form-group"><label class="form-label">{{ form.procedure_description.label }}</label>{{ form.procedure_description }}</div>
+<div class="form-group"><label class="form-label">{{ form.anesthesia.label }}</label>{{ form.anesthesia }}</div>
+<div class="form-group"><label class="form-label">{{ form.complications.label }}</label>{{ form.complications }}</div>
+<div class="form-group"><label class="form-label">{{ form.postoperative_instructions.label }}</label>{{ form.postoperative_instructions }}</div>
+<div class="form-group"><label class="form-label">{{ form.surgical_notes.label }}</label>{{ form.surgical_notes }}</div>
+<div class="flex gap-3 mt-6">
+<button type="submit" class="btn btn-primary">{% if is_create %}{% trans "ثبت" %}{% else %}{% trans "ذخیره" %}{% endif %}</button>
+<a href="{% if surgery %}{% url 'surgery:detail' surgery.pk %}{% else %}{% url 'surgery:list' %}{% endif %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+</div>
+</form>
+</div></div>
+{% endblock %}

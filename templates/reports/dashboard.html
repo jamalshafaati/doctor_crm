@@ -1,0 +1,66 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="mb-6"><h1>{{ page_title }}</h1>
+<p class="text-secondary mb-0">{% trans "گزارش واقعی با فیلتر بازه زمانی (نمایش شمسی)" %}</p></div>
+
+<div class="card mb-6"><div class="card-body">
+<form method="get" class="flex gap-3 items-end" style="flex-wrap:wrap;">
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "از تاریخ (شمسی)" %}</label>
+        <input type="text" name="from" class="form-input" value="{{ date_from_j }}" placeholder="1403/01/01" style="width:140px;">
+    </div>
+    <div class="form-group mb-0">
+        <label class="form-label">{% trans "تا تاریخ (شمسی)" %}</label>
+        <input type="text" name="to" class="form-input" value="{{ date_to_j }}" placeholder="1403/12/29" style="width:140px;">
+    </div>
+    <button type="submit" class="btn btn-primary">{% trans "اعمال بازه" %}</button>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost">{% trans "۳۰ روز اخیر" %}</a>
+</form>
+<p class="text-xs text-muted mt-2 mb-0">{% trans "فرمت: 1403/08/23 — ذخیره در سیستم میلادی است" %}</p>
+</div></div>
+
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="metric-card"><div class="metric-card-label">{% trans "بیماران فعال" %}</div><div class="metric-card-value">{{ total_patients }}</div>
+        <div class="metric-card-change">{% trans "جدید در بازه" %}: {{ new_patients }}</div></div>
+    <div class="metric-card"><div class="metric-card-label">{% trans "نوبت‌ها" %}</div><div class="metric-card-value">{{ appt_count }}</div></div>
+    <div class="metric-card"><div class="metric-card-label">{% trans "ویزیت‌ها" %}</div><div class="metric-card-value">{{ enc_count }}</div>
+        <div class="metric-card-change">{% trans "نهایی" %}: {{ enc_finalized }} · {% trans "باز" %}: {{ open_encounters }}</div></div>
+    <div class="metric-card"><div class="metric-card-label">{% trans "جراحی / پیگیری" %}</div><div class="metric-card-value">{{ surgery_count }} / {{ followup_count }}</div>
+        <div class="metric-card-change">{% trans "پیگیری انجام‌شده" %}: {{ followup_done }}</div></div>
+</div>
+
+<div class="grid grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0">{% trans "نوبت و ویزیت روزانه" %}</h3></div>
+        <div class="card-body" style="max-height:360px;overflow:auto;">
+            {% for d in daily %}
+            <div class="flex items-center justify-between mb-2 text-sm">
+                <span style="width:90px;">{{ d.jalali }}</span>
+                <div style="flex:1;margin:0 0.75rem;">
+                    <div style="height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;margin-bottom:3px;">
+                        <div style="height:100%;width:{{ d.appts }}0%;max-width:100%;background:var(--color-primary-teal);"></div>
+                    </div>
+                </div>
+                <span class="text-muted">{% trans "نوبت" %} {{ d.appts }} · {% trans "ویزیت" %} {{ d.encounters }}</span>
+            </div>
+            {% empty %}<p class="text-muted text-sm">{% trans "داده‌ای نیست" %}</p>{% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0">{% trans "وضعیت‌ها در بازه" %}</h3></div>
+        <div class="card-body">
+            <h4 class="text-sm mb-2">{% trans "نوبت" %}</h4>
+            {% for s in appt_by_status %}<div class="flex justify-between text-sm mb-1"><span>{{ s.status }}</span><strong>{{ s.c }}</strong></div>{% empty %}<p class="text-muted text-sm">—</p>{% endfor %}
+            <hr style="border:none;border-top:1px solid var(--color-border);margin:1rem 0;">
+            <h4 class="text-sm mb-2">{% trans "ویزیت" %}</h4>
+            {% for s in enc_by_status %}<div class="flex justify-between text-sm mb-1"><span>{{ s.status }}</span><strong>{{ s.c }}</strong></div>{% empty %}<p class="text-muted text-sm">—</p>{% endfor %}
+            <hr style="border:none;border-top:1px solid var(--color-border);margin:1rem 0;">
+            <h4 class="text-sm mb-2">{% trans "جراحی" %}</h4>
+            {% for s in surgery_by_status %}<div class="flex justify-between text-sm mb-1"><span>{{ s.status }}</span><strong>{{ s.c }}</strong></div>{% empty %}<p class="text-muted text-sm">—</p>{% endfor %}
+            <p class="text-sm mt-3 mb-0">{% trans "نسخه‌ها در بازه" %}: <strong>{{ rx_count }}</strong></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

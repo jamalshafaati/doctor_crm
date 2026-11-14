@@ -1,0 +1,672 @@
+{% extends "base/base.html" %}
+{% load i18n clinic_tags %}
+{% block title %}{% trans "ویزیت" %} #{{ encounter.pk }} — {{ patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div class="text-sm text-muted">
+            <a href="{% url 'patients:detail' patient.pk %}">{{ patient.patient_number }}</a>
+            · {% trans "ویزیت" %} #{{ encounter.pk }}
+        </div>
+        <h1 style="margin-bottom:0.25rem;">{{ patient.full_name }}</h1>
+        <div class="flex gap-2 items-center">
+            <span class="badge {% if encounter.status == 'finalized' %}badge-success{% elif encounter.status == 'in_progress' %}badge-info{% else %}badge-neutral{% endif %}">
+                {{ encounter.get_status_display }}
+            </span>
+            <span class="text-sm text-muted">{{ encounter.started_at|clinic_datetime }}</span>
+            <span class="text-sm text-muted">· {{ encounter.doctor.get_full_name|default:encounter.doctor.username }}</span>
+        </div>
+    </div>
+    <div class="flex gap-2">
+        {% if not encounter.is_locked %}
+        <form method="post" action="{% url 'encounters:finalize' encounter.pk %}"
+              onsubmit="return confirm('{% trans "نهایی‌سازی ویزیت؟ پس از آن ویرایش مستقیم ممکن نیست." %}')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i data-lucide="check-circle" style="width:14px;height:14px;"></i> {% trans "نهایی‌سازی" %}
+            </button>
+        </form>
+        {% else %}
+        <span class="badge badge-success">{% trans "قفل شده" %}</span>
+        {% endif %}
+        <a href="{% url 'encounters:report' encounter.pk %}" class="btn btn-secondary btn-sm">{% trans "گزارش کامل" %}</a>
+        <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-secondary btn-sm">{% trans "پرونده بیمار" %}</a>
+        <a href="{% url 'encounters:list' %}" class="btn btn-ghost btn-sm">{% trans "لیست ویزیت‌ها" %}</a>
+    </div>
+</div>
+
+{% if alerts %}
+<div class="mb-4">
+{% for a in alerts %}
+<div class="card" style="padding:0.6rem 1rem;margin-bottom:0.4rem;border-inline-start:4px solid var(--color-danger);">
+<strong class="text-sm">⚠ {{ a.title }}</strong>{% if a.description %}<span class="text-sm text-secondary"> — {{ a.description }}</span>{% endif %}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+{% if allergies %}
+<div class="mb-4 flex gap-2" style="flex-wrap:wrap;">
+<span class="text-sm font-medium">{% trans "آلرژی:" %}</span>
+{% for al in allergies %}
+<span class="badge badge-{% if al.severity == 'severe' %}danger{% elif al.severity == 'moderate' %}warning{% else %}neutral{% endif %}">{{ al.allergen }}</span>
+{% endfor %}
+</div>
+{% endif %}
+
+<div x-data="{ tab: '{{ tab|default:"summary" }}' }">
+    <div class="flex gap-1 mb-4" style="border-bottom:1px solid var(--color-border);overflow-x:auto;">
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='summary' && 'btn-secondary'" @click="tab='summary'">{% trans "خلاصه و شکایت" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='exam' && 'btn-secondary'" @click="tab='exam'">{% trans "معاینه عمومی" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='specialty' && 'btn-secondary'" @click="tab='specialty'">{% trans "تخصصی پا و مچ" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='anatomy' && 'btn-secondary'" @click="tab='anatomy'">{% trans "آناتومی" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='dx' && 'btn-secondary'" @click="tab='dx'">{% trans "تشخیص" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='tx' && 'btn-secondary'" @click="tab='tx'">{% trans "طرح درمان" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='rx' && 'btn-secondary'" @click="tab='rx'">{% trans "نسخه" %}</button>
+        <button type="button" class="btn btn-ghost btn-sm" :class="tab==='imaging' && 'btn-secondary'" @click="tab='imaging'">{% trans "تصویربرداری" %}</button>
+    </div>
+
+    <!-- ===== SUMMARY / CHIEF COMPLAINT ===== -->
+    <div x-show="tab==='summary'" x-cloak>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card">
+                <div class="card-header"><h3 class="mb-0">{% trans "شکایت اصلی و یادداشت ویزیت" %}</h3></div>
+                <div class="card-body">
+                    {% if not encounter.is_locked %}
+                    <form method="post" action="{% url 'encounters:update_notes' encounter.pk %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="form-label">{% trans "شکایت اصلی" %}</label>
+                            <textarea name="chief_complaint" class="form-textarea" rows="3">{{ encounter.chief_complaint }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "یادداشت کلی ویزیت" %}</label>
+                            <textarea name="notes" class="form-textarea" rows="4">{{ encounter.notes }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">{% trans "ذخیره" %}</button>
+                    </form>
+                    {% else %}
+                    <div class="text-sm">
+                        <p><strong>{% trans "شکایت" %}:</strong> {{ encounter.chief_complaint|default:"—"|linebreaksbr }}</p>
+                        <p class="mb-0"><strong>{% trans "یادداشت" %}:</strong> {{ encounter.notes|default:"—"|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3 class="mb-0">{% trans "خلاصه بالینی بیمار" %}</h3></div>
+                <div class="card-body text-sm">
+                    {% if history %}
+                    {% if history.current_medications %}<p><strong>{% trans "داروها" %}:</strong> {{ history.current_medications|truncatewords:30 }}</p>{% endif %}
+                    {% if history.past_medical_history %}<p><strong>{% trans "سابقه پزشکی" %}:</strong> {{ history.past_medical_history|truncatewords:25 }}</p>{% endif %}
+                    {% if history.previous_foot_ankle_treatments %}<p><strong>{% trans "پا و مچ" %}:</strong> {{ history.previous_foot_ankle_treatments|truncatewords:20 }}</p>{% endif %}
+                    {% else %}<p class="text-muted">{% trans "سابقه‌ای در پرونده نیست" %}</p>{% endif %}
+                    {% if diagnoses %}
+                    <hr style="border:none;border-top:1px solid var(--color-border);margin:0.75rem 0;">
+                    <p class="font-medium mb-2">{% trans "تشخیص‌های این ویزیت" %}:</p>
+                    {% for d in diagnoses %}
+                    <div class="mb-1"><span class="badge badge-teal">{{ d.get_priority_display }}</span> {{ d.title }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GENERAL EXAM ===== -->
+    <div x-show="tab==='exam'" x-cloak>
+        {% if clinical_exams %}
+        {% for ex in clinical_exams %}
+        <div class="card mb-4"><div class="card-body text-sm">
+            <p><strong>{% trans "شکایت" %}:</strong> {{ ex.chief_complaint|default:"—" }}</p>
+            <p><strong>{% trans "درد" %}:</strong> {{ ex.pain_severity|default:"—" }}/10 · {{ ex.pain_location }} · {{ ex.get_side_display }}</p>
+            <p><strong>{% trans "مشاهده" %}:</strong> {{ ex.inspection|default:"—" }}</p>
+            <p><strong>{% trans "لمس" %}:</strong> {{ ex.palpation|default:"—" }}</p>
+            <p><strong>{% trans "ROM" %}:</strong> {{ ex.range_of_motion|default:"—" }}</p>
+            <p class="mb-0"><strong>{% trans "عصبی-عروقی" %}:</strong> {{ ex.neurovascular|default:"—" }}</p>
+        </div></div>
+        {% endfor %}
+        {% endif %}
+        {% if not encounter.is_locked %}
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">{% trans "ثبت معاینه عمومی" %}</h3></div>
+            <div class="card-body">
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'clinical' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">{% trans "شکایت اصلی" %}</label>
+                        <textarea name="chief_complaint" class="form-textarea" rows="2">{{ encounter.chief_complaint }}</textarea>
+                    </div>
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "شروع" %}</label>
+                            <input type="text" name="onset" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "مدت" %}</label>
+                            <input type="text" name="duration" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "محل درد" %}</label>
+                            <input type="text" name="pain_location" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "شدت درد (۰–۱۰)" %}</label>
+                            <input type="number" name="pain_severity" class="form-input" min="0" max="10">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "ماهیت درد" %}</label>
+                            <input type="text" name="pain_character" class="form-input" placeholder="{% trans 'تیز / مبهم / سوزشی...' %}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "طرف" %}</label>
+                            <select name="side" class="form-select">
+                                <option value="na">—</option>
+                                <option value="right">{% trans "راست" %}</option>
+                                <option value="left">{% trans "چپ" %}</option>
+                                <option value="bilateral">{% trans "دو طرفه" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "مکانیسم آسیب" %}</label>
+                        <textarea name="mechanism_of_injury" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عوامل تشدیدکننده" %}</label>
+                            <textarea name="aggravating_factors" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عوامل تسکین‌دهنده" %}</label>
+                            <textarea name="relieving_factors" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "مشاهده (Inspection)" %}</label>
+                            <textarea name="inspection" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "لمس (Palpation)" %}</label>
+                            <textarea name="palpation" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "دامنه حرکتی (ROM)" %}</label>
+                            <textarea name="range_of_motion" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "ثبات (Stability)" %}</label>
+                            <textarea name="stability" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "قدرت عضلانی" %}</label>
+                            <textarea name="muscle_strength" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عصبی-عروقی" %}</label>
+                            <textarea name="neurovascular" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "راه رفتن (Gait)" %}</label>
+                            <textarea name="gait" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "ارزیابی عملکردی" %}</label>
+                            <textarea name="functional_assessment" class="form-textarea" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "درمان قبلی" %}</label>
+                        <textarea name="previous_treatment" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "یادداشت" %}</label>
+                        <textarea name="notes" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{% trans "ذخیره معاینه عمومی" %}</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== SPECIALTY (keep existing compact forms) ===== -->
+    <div x-show="tab==='specialty'" x-cloak>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            {% if trauma_exams %}{% for t in trauma_exams %}
+            <div class="card"><div class="card-body text-sm"><strong>{% trans "تروما" %}</strong>: {{ t.get_side_display }} · {{ t.location }} · {{ t.mechanism|truncatewords:10 }}{% if t.weber_class %} · Weber {{ t.weber_class }}{% endif %}</div></div>
+            {% endfor %}{% endif %}
+            {% if achilles_exams %}{% for a in achilles_exams %}
+            <div class="card"><div class="card-body text-sm"><strong>{% trans "آشیل" %}</strong>: {{ a.get_condition_type_display }} · Thompson: {{ a.thompson_test|default:"—" }}</div></div>
+            {% endfor %}{% endif %}
+            {% if sports_exams %}{% for s in sports_exams %}
+            <div class="card"><div class="card-body text-sm"><strong>{% trans "ورزشی" %}</strong>: {{ s.sport_type }} · ATFL: {{ s.atfl|default:"—" }}</div></div>
+            {% endfor %}{% endif %}
+            {% for f in flatfoot_exams %}<div class="card"><div class="card-body text-sm"><strong>{% trans "صافی کف پا" %}</strong>: {{ f.get_flexibility_display }}</div></div>{% endfor %}
+            {% for d in deformity_exams %}<div class="card"><div class="card-body text-sm"><strong>{% trans "دفورمیتی" %}</strong>: {{ d.get_deformity_type_display }}</div></div>{% endfor %}
+            {% for a in arthritis_exams %}<div class="card"><div class="card-body text-sm"><strong>{% trans "آرتریت" %}</strong>: {{ a.joint }} · {{ a.pain|default:"—" }}/10</div></div>{% endfor %}
+        </div>
+        {% if not encounter.is_locked %}
+        <!-- Trauma -->
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ تروما" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'trauma' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "تاریخ آسیب" %}</label><input type="date" name="injury_date" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">{% trans "طرف" %}</label>
+                        <select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option><option value="bilateral">{% trans "دو طرفه" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">{% trans "محل" %}</label><input type="text" name="location" class="form-input"></div>
+                </div>
+                <div class="form-group"><label class="form-label">{% trans "مکانیسم" %}</label><textarea name="mechanism" class="form-textarea" rows="2"></textarea></div>
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "تحمل وزن" %}</label><input type="text" name="weight_bearing" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">{% trans "تورم" %}</label><input type="text" name="swelling" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">{% trans "کبودی" %}</label><input type="text" name="bruising" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Weber</label><input type="text" name="weber_class" class="form-input" placeholder="A/B/C"></div>
+                </div>
+                <div class="form-group"><label class="form-label">{% trans "حساسیت" %}</label><textarea name="tenderness" class="form-textarea" rows="2"></textarea></div>
+                <div class="form-group"><label class="form-label">{% trans "عصبی-عروقی" %}</label><textarea name="neurovascular_status" class="form-textarea" rows="2"></textarea></div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره تروما" %}</button>
+                </form>
+            </div>
+        </div>
+        <!-- Achilles -->
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ آشیل" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'achilles' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "نوع" %}</label>
+                        <select name="condition_type" class="form-select"><option value="acute_rupture">{% trans "پارگی حاد" %}</option><option value="tendinopathy">{% trans "تاندینوپاتی" %}</option><option value="other">{% trans "سایر" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">{% trans "طرف" %}</label>
+                        <select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">{% trans "تست Thompson" %}</label><input type="text" name="thompson_test" class="form-input"></div>
+                </div>
+                <div class="flex gap-4 mb-3">
+                    <label class="text-sm flex items-center gap-2"><input type="checkbox" name="tendon_tenderness" value="true"> {% trans "حساسیت" %}</label>
+                    <label class="text-sm flex items-center gap-2"><input type="checkbox" name="tendon_thickening" value="true"> {% trans "ضخامت" %}</label>
+                    <label class="text-sm flex items-center gap-2"><input type="checkbox" name="palpable_defect" value="true"> {% trans "نقص قابل لمس" %}</label>
+                </div>
+                <div class="form-group"><label class="form-label">{% trans "یافته US/MRI" %}</label><textarea name="imaging_findings" class="form-textarea" rows="2"></textarea></div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره آشیل" %}</button>
+                </form>
+            </div>
+        </div>
+        <!-- Sports -->
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ ورزشی / لیگامان" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'sports' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "ورزش" %}</label><input type="text" name="sport_type" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">{% trans "طرف" %}</label>
+                        <select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option></select></div>
+                    <div class="form-group" style="padding-top:1.8rem;"><label class="text-sm flex items-center gap-2"><input type="checkbox" name="instability" value="true"> {% trans "ناپایداری" %}</label></div>
+                </div>
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="form-group"><label class="form-label">ATFL</label><input type="text" name="atfl" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">CFL</label><input type="text" name="cfl" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Drawer</label><input type="text" name="anterior_drawer" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Talar Tilt</label><input type="text" name="talar_tilt" class="form-input"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره ورزشی" %}</button>
+                </form>
+            </div>
+        </div>
+        <!-- Flatfoot / Deformity / Arthritis compact -->
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ صافی کف پا" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'flatfoot' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "طرف" %}</label><select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option><option value="bilateral">{% trans "دو طرفه" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">{% trans "انعطاف" %}</label><select name="flexibility" class="form-select"><option value="flexible">{% trans "انعطاف‌پذیر" %}</option><option value="rigid">{% trans "سفت" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">Meary</label><input type="number" step="0.1" name="mearys_angle" class="form-input"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره" %}</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ دفورمیتی" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'deformity' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "نوع" %}</label>
+                        <select name="deformity_type" class="form-select" required>
+                            <option value="hallux_valgus">Hallux Valgus</option>
+                            <option value="hallux_rididus">Hallux Rigidus</option>
+                            <option value="hammertoe">Hammertoe</option>
+                            <option value="claw_toe">Claw Toe</option>
+                            <option value="cavus">Cavus</option>
+                            <option value="flatfoot">Flatfoot</option>
+                            <option value="equinus">Equinus</option>
+                            <option value="other">{% trans "سایر" %}</option>
+                        </select></div>
+                    <div class="form-group"><label class="form-label">{% trans "طرف" %}</label><select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option></select></div>
+                    <div class="form-group"><label class="form-label">{% trans "شدت" %}</label><input type="text" name="severity" class="form-input"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره" %}</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mb-3" x-data="{open:false}">
+            <div class="card-header" style="cursor:pointer" @click="open=!open"><h3 class="mb-0">{% trans "+ آرتریت" %}</h3></div>
+            <div class="card-body" x-show="open" x-cloak>
+                <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'arthritis' %}">{% csrf_token %}
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group"><label class="form-label">{% trans "مفصل" %}</label><input type="text" name="joint" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">{% trans "درد" %}</label><input type="number" name="pain" class="form-input" min="0" max="10"></div>
+                    <div class="form-group"><label class="form-label">Takakura</label><input type="text" name="takakura_stage" class="form-input"></div>
+                </div>
+                <div class="form-group"><label class="form-label">{% trans "طرف" %}</label><select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option></select></div>
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "ذخیره" %}</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== ANATOMY ===== -->
+    <div x-show="tab==='anatomy'" x-cloak>
+        {% if anatomy %}
+        <div class="card mb-4"><div class="card-body" style="padding:0;">
+            <table class="data-table">
+                <thead><tr><th>{% trans "نما" %}</th><th>{% trans "ناحیه" %}</th><th>{% trans "نوع" %}</th><th>{% trans "طرف" %}</th><th>{% trans "شدت" %}</th></tr></thead>
+                <tbody>{% for f in anatomy %}<tr>
+                    <td>{{ f.get_view_display }}</td><td>{{ f.region }}</td><td>{{ f.get_finding_type_display }}</td>
+                    <td>{{ f.get_side_display }}</td><td>{{ f.severity|default:"—" }}</td>
+                </tr>{% endfor %}</tbody>
+            </table>
+        </div></div>
+        {% endif %}
+        {% if not encounter.is_locked %}
+        <div class="card"><div class="card-header"><h3 class="mb-0">{% trans "افزودن یافته آناتومیک" %}</h3></div>
+        <div class="card-body">
+            <form method="post" action="{% url 'foot_ankle:add_exam' encounter.pk 'anatomy' %}">{% csrf_token %}
+            <div class="grid grid-cols-4 gap-3">
+                <div class="form-group"><label class="form-label">{% trans "نما" %}</label>
+                    <select name="view" class="form-select"><option value="dorsal">{% trans "پشتی" %}</option><option value="plantar">{% trans "کفی" %}</option><option value="lateral">{% trans "جانبی" %}</option></select></div>
+                <div class="form-group"><label class="form-label">{% trans "ناحیه" %}</label><input type="text" name="region" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">{% trans "نوع" %}</label>
+                    <select name="finding_type" class="form-select">
+                        <option value="pain">{% trans "درد" %}</option><option value="tenderness">{% trans "حساسیت" %}</option>
+                        <option value="swelling">{% trans "تورم" %}</option><option value="deformity">{% trans "دفورمیتی" %}</option>
+                        <option value="numbness">{% trans "بی‌حسی" %}</option><option value="other">{% trans "سایر" %}</option>
+                    </select></div>
+                <div class="form-group"><label class="form-label">{% trans "طرف" %}</label>
+                    <select name="side" class="form-select"><option value="right">{% trans "راست" %}</option><option value="left">{% trans "چپ" %}</option><option value="bilateral">{% trans "دو طرفه" %}</option></select></div>
+            </div>
+            <div class="form-group"><label class="form-label">{% trans "شدت ۱–۵" %}</label><input type="number" name="severity" class="form-input" min="1" max="5" style="max-width:100px;"></div>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "افزودن" %}</button>
+            </form>
+        </div></div>
+        {% endif %}
+    </div>
+
+    <!-- ===== DIAGNOSIS ===== -->
+    <div x-show="tab==='dx'" x-cloak>
+        <div class="card mb-4">
+            <div class="card-header"><h3 class="mb-0">{% trans "تشخیص‌های این ویزیت" %}</h3></div>
+            <div class="card-body">
+                {% if diagnoses %}
+                {% for d in diagnoses %}
+                <div class="mb-3" style="padding-bottom:0.75rem;border-bottom:1px solid var(--color-border);">
+                    <span class="badge badge-teal">{{ d.get_priority_display }}</span>
+                    <strong>{{ d.title }}</strong>
+                    {% if d.code %}<code class="text-sm">{{ d.code }}</code>{% endif %}
+                    <span class="text-sm text-muted">· {{ d.get_side_display }}</span>
+                    {% if d.clinical_notes %}<p class="text-sm text-secondary mb-0 mt-1">{{ d.clinical_notes }}</p>{% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted text-sm">{% trans "تشخیصی ثبت نشده" %}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% if not encounter.is_locked %}
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">{% trans "ثبت تشخیص" %}</h3></div>
+            <div class="card-body">
+                <form method="post" action="{% url 'encounters:add_diagnosis' encounter.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">{% trans "از کاتالوگ" %}</label>
+                        <select name="catalog" class="form-select" id="dx-catalog"
+                                onchange="var o=this.options[this.selectedIndex]; if(o.value){ document.getElementById('dx-title').value=o.getAttribute('data-title')||''; document.getElementById('dx-code').value=o.getAttribute('data-code')||''; }">
+                            <option value="">— {% trans "انتخاب اختیاری" %} —</option>
+                            {% for c in diagnosis_catalog %}
+                            <option value="{{ c.pk }}" data-title="{{ c.title_fa }}" data-code="{{ c.code }}">{{ c.code }} — {{ c.title_fa }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "عنوان تشخیص" %} *</label>
+                            <input type="text" name="title" id="dx-title" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "کد" %}</label>
+                            <input type="text" name="code" id="dx-code" class="form-input">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "اولویت" %}</label>
+                            <select name="priority" class="form-select">
+                                <option value="primary">{% trans "اصلی" %}</option>
+                                <option value="secondary">{% trans "فرعی" %}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "طرف" %}</label>
+                            <select name="side" class="form-select">
+                                <option value="na">—</option>
+                                <option value="right">{% trans "راست" %}</option>
+                                <option value="left">{% trans "چپ" %}</option>
+                                <option value="bilateral">{% trans "دو طرفه" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "یادداشت بالینی" %}</label>
+                        <textarea name="clinical_notes" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{% trans "ثبت تشخیص" %}</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== TREATMENT ===== -->
+    <div x-show="tab==='tx'" x-cloak>
+        {% if treatments %}
+        {% for t in treatments %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "طرح درمان" %}</h3>
+                <span class="badge badge-neutral">{{ t.get_status_display }}</span>
+            </div>
+            <div class="card-body text-sm">
+                {% if t.conservative %}<p><strong>{% trans "محافظه‌کارانه" %}:</strong> {{ t.conservative }}</p>{% endif %}
+                {% if t.physiotherapy %}<p><strong>{% trans "فیزیوتراپی" %}:</strong> {{ t.physiotherapy }}</p>{% endif %}
+                {% if t.immobilization %}<p><strong>{% trans "ثابت‌سازی" %}:</strong> {{ t.immobilization }}</p>{% endif %}
+                {% if t.weight_bearing %}<p><strong>{% trans "تحمل وزن" %}:</strong> {{ t.weight_bearing }}</p>{% endif %}
+                {% if t.medication_recommendations %}<p><strong>{% trans "دارو" %}:</strong> {{ t.medication_recommendations }}</p>{% endif %}
+                {% if t.surgical_consideration %}<p><strong>{% trans "جراحی" %}:</strong> {{ t.surgical_consideration }}</p>{% endif %}
+                {% if t.followup_instructions %}<p class="mb-0"><strong>{% trans "پیگیری" %}:</strong> {{ t.followup_instructions }}</p>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% if not encounter.is_locked %}
+        <div class="card">
+            <div class="card-header"><h3 class="mb-0">{% trans "ثبت / به‌روزرسانی طرح درمان" %}</h3></div>
+            <div class="card-body">
+                <form method="post" action="{% url 'encounters:add_treatment' encounter.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">{% trans "درمان محافظه‌کارانه" %}</label>
+                        <textarea name="conservative" class="form-textarea" rows="2" placeholder="{% trans 'استراحت، یخ، کمپرس...' %}"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "فیزیوتراپی" %}</label>
+                        <textarea name="physiotherapy" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">{% trans "ثابت‌سازی / بریس" %}</label>
+                            <textarea name="immobilization" class="form-textarea" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{% trans "دستور تحمل وزن" %}</label>
+                            <textarea name="weight_bearing" class="form-textarea" rows="2" placeholder="NWB / PWB / FWB"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "توصیه دارویی" %}</label>
+                        <textarea name="medication_recommendations" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "ملاحظات جراحی" %}</label>
+                        <textarea name="surgical_consideration" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "دستورات پیگیری" %}</label>
+                        <textarea name="followup_instructions" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="flex gap-3 items-center">
+                        <button type="submit" class="btn btn-primary">{% trans "ذخیره پیش‌نویس" %}</button>
+                        <button type="submit" name="finalize" value="1" class="btn btn-secondary">{% trans "ذخیره و نهایی‌سازی طرح" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== PRESCRIPTION ===== -->
+    <div x-show="tab==='rx'" x-cloak>
+        {% if prescriptions %}
+        {% for rx in prescriptions %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "نسخه" %} #{{ rx.pk }}</h3>
+                <div class="flex gap-2 items-center">
+                    <span class="badge {% if rx.status == 'approved' %}badge-success{% else %}badge-neutral{% endif %}">{{ rx.get_status_display }}</span>
+                    {% if rx.status == 'draft' and not encounter.is_locked %}
+                    <form method="post" action="{% url 'encounters:approve_prescription' encounter.pk rx.pk %}">{% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">{% trans "تأیید نسخه" %}</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <ul style="padding-inline-start:1.2rem;margin:0;">
+                    {% for item in rx.items.all %}
+                    <li class="text-sm mb-1">
+                        <strong>{{ item.medication_name }}</strong>
+                        {% if item.dosage %} — {{ item.dosage }}{% endif %}
+                        {% if item.frequency %} · {{ item.frequency }}{% endif %}
+                        {% if item.duration %} · {{ item.duration }}{% endif %}
+                        {% if item.route %} · {{ item.route }}{% endif %}
+                        {% if item.instructions %}<div class="text-xs text-muted">{{ item.instructions }}</div>{% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="text-sm text-muted">{% trans "بدون قلم" %}</li>
+                    {% endfor %}
+                </ul>
+                {% if rx.notes %}<p class="text-sm text-muted mt-2 mb-0">{{ rx.notes }}</p>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% if not encounter.is_locked %}
+        <div class="card" x-data="{ rows: 1 }">
+            <div class="card-header"><h3 class="mb-0">{% trans "ثبت نسخه جدید" %}</h3></div>
+            <div class="card-body">
+                <form method="post" action="{% url 'encounters:add_prescription' encounter.pk %}">
+                    {% csrf_token %}
+                    <template x-for="i in Array.from({length: rows}, (_, idx) => idx)" :key="i">
+                        <div class="mb-4" style="padding:1rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--color-border);">
+                            <div class="text-sm font-medium mb-2" x-text="'{% trans "قلم" %} ' + (i+1)"></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="form-group">
+                                    <label class="form-label">{% trans "نام دارو" %} *</label>
+                                    <input type="text" class="form-input" :name="'medication_name_'+i" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">{% trans "دوز" %}</label>
+                                    <input type="text" class="form-input" :name="'dosage_'+i" placeholder="500mg">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="form-group">
+                                    <label class="form-label">{% trans "تکرار" %}</label>
+                                    <input type="text" class="form-input" :name="'frequency_'+i" placeholder="{% trans 'هر ۸ ساعت' %}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">{% trans "مدت" %}</label>
+                                    <input type="text" class="form-input" :name="'duration_'+i" placeholder="{% trans '۷ روز' %}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">{% trans "راه مصرف" %}</label>
+                                    <input type="text" class="form-input" :name="'route_'+i" placeholder="{% trans 'خوراکی' %}">
+                                </div>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">{% trans "دستور" %}</label>
+                                <input type="text" class="form-input" :name="'instructions_'+i">
+                            </div>
+                        </div>
+                    </template>
+                    <button type="button" class="btn btn-secondary btn-sm mb-4" @click="rows = Math.min(rows+1, 10)">
+                        + {% trans "افزودن قلم دارو" %}
+                    </button>
+                    <div class="form-group">
+                        <label class="form-label">{% trans "توضیحات کلی نسخه" %}</label>
+                        <textarea name="notes" class="form-textarea" rows="2"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="btn btn-primary">{% trans "ذخیره پیش‌نویس" %}</button>
+                        <button type="submit" name="approve" value="1" class="btn btn-secondary">{% trans "ذخیره و تأیید" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== IMAGING (list only) ===== -->
+    <div x-show="tab==='imaging'" x-cloak>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{% trans "تصویربرداری مرتبط" %}</h3>
+                <a href="{% url 'patients:detail' patient.pk %}?tab=documents" class="btn btn-ghost btn-sm">{% trans "اسناد بیمار" %}</a>
+            </div>
+            <div class="card-body">
+                {% if imaging %}
+                {% for img in imaging %}
+                <div class="mb-2 text-sm">{{ img.title }} · {{ img.get_category_display }} · {{ img.study_date|clinic_date }}</div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted text-sm mb-0">{% trans "تصویری به این ویزیت متصل نیست. از پرونده بیمار فایل آپلود کنید." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<style>[x-cloak]{display:none!important;}</style>
+{% endblock %}
