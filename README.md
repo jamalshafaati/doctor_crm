@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # کلینیک تخصصی پا و مچ پا — سیستم مدیریت و EMR
 
 **Foot & Ankle Specialist Clinic Management & EMR**
@@ -228,3 +229,6 @@ DATABASES = {
 
 **نسخه:** 0.7.1 (تا پایان فاز ۷)  
 **آخرین به‌روزرسانی:** نوامبر ۲۰۲۶
+=======
+# doctor_crm
+>>>>>>> 8bece008f73d6b48680ba5310d9a9c9909beb585
